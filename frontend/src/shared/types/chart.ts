@@ -5,15 +5,6 @@ import { DataRow } from './data';
 // 圖表類型枚舉
 export type ChartType = 'line' | 'bar';
 
-// 圖表配置
-export interface ChartConfig {
-  type: ChartType;
-  xField: string;
-  yFields: string[];
-  title?: string;
-  colors?: string[];
-}
-
 // 圖表顯示組件屬性
 export interface ChartDisplayProps {
   data: DataRow[] | null;

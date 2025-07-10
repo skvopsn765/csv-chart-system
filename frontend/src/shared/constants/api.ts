@@ -26,6 +26,7 @@ export const FILE_UPLOAD_LIMITS = {
   ALLOWED_MIME_TYPES: [
     'text/csv',
     'application/vnd.ms-excel',
-    'text/plain'
+    'text/plain',
+    '' // 空字串也是有效的 MIME 類型
   ]
 } as const; 

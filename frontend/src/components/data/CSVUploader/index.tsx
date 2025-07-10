@@ -25,8 +25,9 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
       return `檔案大小超過限制（最大 ${(FILE_UPLOAD_LIMITS.MAX_FILE_SIZE / 1024 / 1024).toFixed(0)}MB）`;
     }
 
-    // 檢查 MIME 類型
-    if (!FILE_UPLOAD_LIMITS.ALLOWED_MIME_TYPES.includes(file.type as any) && file.type !== '') {
+    // 檢查 MIME 類型（允許空字串，某些瀏覽器可能不提供 MIME 類型）
+    const allowedMimeTypes = FILE_UPLOAD_LIMITS.ALLOWED_MIME_TYPES as readonly string[];
+    if (file.type !== '' && !allowedMimeTypes.includes(file.type)) {
       return '檔案格式不正確';
     }
 
