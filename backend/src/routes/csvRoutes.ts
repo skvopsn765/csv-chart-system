@@ -165,10 +165,13 @@ const isRowDuplicate = (row1: CSVData, row2: CSVData, columns: string[]): boolea
 };
 
 // 檢查新資料是否與現有資料重複
-const checkDuplicateData = async (newRows: CSVData[], newColumns: string[]): Promise<DuplicateCheckResult> => {
+const checkDuplicateData = async (newRows: CSVData[], newColumns: string[], userId: number): Promise<DuplicateCheckResult> => {
   try {
-    // 取得所有現有的上傳記錄
+    // 取得同一用戶的所有上傳記錄
     const existingUploads = await Upload.findAll({
+      where: {
+        userId: userId // 只檢查同一用戶的資料
+      },
       attributes: ['dataJson', 'columnsInfo']
     });
     
@@ -236,6 +239,14 @@ router.post('/upload-csv', authenticateToken, upload.single('csvFile'), async (r
       });
     }
     
+    // 取得當前用戶 ID
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({
+        error: '無法取得用戶資訊'
+      });
+    }
+    
     // 檢查是否強制上傳（跳過重複檢查）
     const forceUpload = req.body.forceUpload === 'true';
     
@@ -279,9 +290,10 @@ router.post('/upload-csv', authenticateToken, upload.single('csvFile'), async (r
     
     // 如果不是強制上傳，檢查重複資料
     if (!forceUpload) {
-      const duplicateResult = await checkDuplicateData(processedData, columns);
+      const duplicateResult = await checkDuplicateData(processedData, columns, userId);
       
       if (duplicateResult.hasDuplicates) {
+        console.log(`🔍 發現重複資料: ${duplicateResult.duplicateCount} 筆，用戶: ${req.user?.username}`);
         return res.status(409).json({
           error: '發現重複資料',
           success: false,
@@ -298,7 +310,8 @@ router.post('/upload-csv', authenticateToken, upload.single('csvFile'), async (r
       columnsInfo: JSON.stringify(columns),
       dataJson: JSON.stringify(processedData),
       rowCount: processedData.length,
-      columnCount: columns.length
+      columnCount: columns.length,
+      userId: userId // 儲存上傳者 ID
     });
     
     console.log(`📊 CSV 資料已儲存到資料庫，ID: ${uploadRecord.id}，用戶: ${req.user?.username}`);
@@ -357,8 +370,16 @@ router.post('/check-duplicates', authenticateToken, async (req: Request, res: Re
       });
     }
     
+    // 取得當前用戶 ID
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({
+        error: '無法取得用戶資訊'
+      });
+    }
+    
     // 檢查重複資料
-    const duplicateResult = await checkDuplicateData(rows, columns);
+    const duplicateResult = await checkDuplicateData(rows, columns, userId);
     
     res.json({
       success: true,
@@ -393,14 +414,30 @@ router.get('/uploads', authenticateToken, async (req: Request, res: Response) =>
     const limit = parseInt(req.query.limit as string) || 10;
     const offset = parseInt(req.query.offset as string) || 0;
     
+    // 取得當前用戶 ID
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({
+        error: '無法取得用戶資訊'
+      });
+    }
+    
+    // 只取得該用戶的上傳記錄
     const uploads = await Upload.findAll({
+      where: {
+        userId: userId
+      },
       attributes: ['id', 'fileName', 'fileSize', 'rowCount', 'columnCount', 'createdAt'],
       order: [['createdAt', 'DESC']],
       limit: Math.min(limit, 100), // 限制最大查詢數量
       offset: offset
     });
     
-    const total = await Upload.count();
+    const total = await Upload.count({
+      where: {
+        userId: userId
+      }
+    });
     
     res.json({
       success: true,
@@ -426,7 +463,21 @@ router.get('/uploads/:id', authenticateToken, async (req: Request, res: Response
   try {
     const { id } = req.params;
     
-    const upload = await Upload.findByPk(id);
+    // 取得當前用戶 ID
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({
+        error: '無法取得用戶資訊'
+      });
+    }
+    
+    // 只能查看自己的上傳記錄
+    const upload = await Upload.findOne({
+      where: {
+        id: id,
+        userId: userId
+      }
+    });
     
     if (!upload) {
       return res.status(404).json({
@@ -467,7 +518,21 @@ router.delete('/uploads/:id', authenticateToken, async (req: Request, res: Respo
   try {
     const { id } = req.params;
     
-    const upload = await Upload.findByPk(id);
+    // 取得當前用戶 ID
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({
+        error: '無法取得用戶資訊'
+      });
+    }
+    
+    // 只能刪除自己的上傳記錄
+    const upload = await Upload.findOne({
+      where: {
+        id: id,
+        userId: userId
+      }
+    });
     
     if (!upload) {
       return res.status(404).json({

@@ -10,6 +10,7 @@ interface UploadAttributes {
   dataJson: string;
   rowCount?: number;
   columnCount?: number;
+  userId: number; // 新增上傳者 ID
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -23,6 +24,7 @@ class Upload extends Model<UploadAttributes> implements UploadAttributes {
   public dataJson!: string;
   public rowCount!: number;
   public columnCount!: number;
+  public userId!: number; // 新增上傳者 ID
   
   // 時間戳記
   public readonly createdAt!: Date;
@@ -66,6 +68,11 @@ Upload.init({
     type: DataTypes.INTEGER,
     defaultValue: 0,
     comment: '欄位數量'
+  },
+  userId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    comment: '上傳者用戶 ID'
   }
 }, {
   sequelize,
@@ -76,6 +83,9 @@ Upload.init({
     },
     {
       fields: ['created_at']
+    },
+    {
+      fields: ['user_id']
     }
   ]
 });

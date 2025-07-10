@@ -133,8 +133,11 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
       // 先嘗試上傳（不強制）
       const result = await uploadFileToBackend(file, false);
       
+      console.log('上傳結果:', result); // 調試日誌
+      
       // 檢查是否有重複資料
       if (result.duplicateCheck && result.duplicateCheck.hasDuplicates) {
+        console.log('發現重複資料:', result.duplicateCheck); // 調試日誌
         setUploadProgress(0);
         setIsUploading(false);
         
@@ -148,9 +151,20 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
           rows: result.duplicateCheck.duplicateRows
         });
         
+        console.log('設置重複確認狀態:', {
+          showDuplicateConfirmation: true,
+          duplicateResult: result.duplicateCheck
+        }); // 調試日誌
+        
         // 清空文件輸入
         event.target.value = '';
         return;
+      }
+      
+      // 如果沒有重複資料，檢查是否成功
+      if (!result.success) {
+        console.log('上傳失敗但沒有重複資料:', result); // 調試日誌
+        throw new Error(result.error || '上傳失敗');
       }
       
       setUploadProgress(75);

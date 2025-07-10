@@ -8,7 +8,8 @@
     "dev": "nodemon --exec ts-node src/server.ts",
     "build": "tsc",
     "test": "jest",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "migrate": "ts-node src/migrations/add-user-id-to-uploads.ts"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
