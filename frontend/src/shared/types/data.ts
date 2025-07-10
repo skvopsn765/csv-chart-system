@@ -34,6 +34,45 @@ export interface CSVParseResponse {
   message?: string;
 }
 
+// 上傳記錄相關類型
+export interface UploadRecord {
+  id: number;
+  fileName: string;
+  fileSize: number;
+  rowCount: number;
+  columnCount: number;
+  createdAt: string;
+}
+
+export interface UploadDetailResponse {
+  success: boolean;
+  data?: {
+    id: number;
+    fileName: string;
+    fileSize: number;
+    uploadDate: string;
+    columns: string[];
+    rows: DataRow[];
+    summary: {
+      totalRows: number;
+      totalColumns: number;
+    };
+  };
+  error?: string;
+}
+
+export interface UploadsListResponse {
+  success: boolean;
+  data?: UploadRecord[];
+  pagination?: {
+    total: number;
+    limit: number;
+    offset: number;
+    hasNext: boolean;
+  };
+  error?: string;
+}
+
 // CSV 上傳器相關類型
 export interface CSVUploaderProps {
   onUpload: (rows: DataRow[], columns: string[]) => void;

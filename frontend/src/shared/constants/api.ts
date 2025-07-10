@@ -9,7 +9,8 @@ export const API_ENDPOINTS = {
   },
   CSV: {
     UPLOAD: '/api/upload-csv',
-    CHECK_DUPLICATES: '/api/check-duplicates'
+    CHECK_DUPLICATES: '/api/check-duplicates',
+    UPLOADS: '/api/uploads'
   }
 } as const;
 
