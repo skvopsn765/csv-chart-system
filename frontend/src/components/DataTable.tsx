@@ -1,7 +1,12 @@
 import React from 'react';
 import './DataTable.css';
 
-const DataTable = ({ data, columns }) => {
+interface DataTableProps {
+  data: { [key: string]: string | number }[] | null;
+  columns: string[];
+}
+
+const DataTable: React.FC<DataTableProps> = ({ data, columns }) => {
   // 如果沒有資料，顯示提示
   if (!data || data.length === 0) {
     return (

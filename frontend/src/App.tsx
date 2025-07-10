@@ -4,24 +4,29 @@ import FieldSelector from './components/FieldSelector';
 import ChartDisplay from './components/ChartDisplay';
 import DataTable from './components/DataTable';
 import { TabPanel, Tab } from './components/TabPanel';
+import { ChartType, CSVData } from './types';
 import './App.css';
 
 // 圖表類型常數
-const CHART_TYPES = {
+const CHART_TYPES: { [key: string]: ChartType } = {
   LINE: 'line',
   BAR: 'bar'
 };
 
-function App() {
+interface CSVDataStructure {
+  [key: string]: string | number;
+}
+
+const App: React.FC = () => {
   // 主要狀態管理
-  const [csvData, setCsvData] = useState(null); // CSV 解析後的資料
-  const [columns, setColumns] = useState([]); // 欄位名稱陣列
-  const [selectedXAxis, setSelectedXAxis] = useState(''); // 選擇的 X 軸欄位
-  const [selectedYAxis, setSelectedYAxis] = useState([]); // 選擇的 Y 軸欄位陣列
-  const [chartType, setChartType] = useState(CHART_TYPES.LINE); // 圖表類型
+  const [csvData, setCsvData] = useState<CSVDataStructure[] | null>(null); // CSV 解析後的資料
+  const [columns, setColumns] = useState<string[]>([]); // 欄位名稱陣列
+  const [selectedXAxis, setSelectedXAxis] = useState<string>(''); // 選擇的 X 軸欄位
+  const [selectedYAxis, setSelectedYAxis] = useState<string[]>([]); // 選擇的 Y 軸欄位陣列
+  const [chartType, setChartType] = useState<ChartType>(CHART_TYPES.LINE); // 圖表類型
 
   // 處理 CSV 上傳成功
-  const handleCSVUpload = (data, columnsData) => {
+  const handleCSVUpload = (data: CSVDataStructure[], columnsData: string[]): void => {
     setCsvData(data);
     setColumns(columnsData);
     // 重置選擇的欄位
@@ -30,17 +35,17 @@ function App() {
   };
 
   // 處理 X 軸欄位選擇
-  const handleXAxisChange = (fieldName) => {
+  const handleXAxisChange = (fieldName: string): void => {
     setSelectedXAxis(fieldName);
   };
 
   // 處理 Y 軸欄位選擇
-  const handleYAxisChange = (fieldNames) => {
+  const handleYAxisChange = (fieldNames: string[]): void => {
     setSelectedYAxis(fieldNames);
   };
 
   // 切換圖表類型
-  const toggleChartType = () => {
+  const toggleChartType = (): void => {
     setChartType(prev => 
       prev === CHART_TYPES.LINE ? CHART_TYPES.BAR : CHART_TYPES.LINE
     );
@@ -115,6 +120,6 @@ function App() {
       </main>
     </div>
   );
-}
+};
 
 export default App; 

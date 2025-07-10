@@ -1,11 +1,11 @@
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const csvRoutes = require('./routes/csvRoutes');
+import express, { Request, Response, NextFunction } from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import csvRoutes from './routes/csvRoutes';
 // 資料庫相關 imports
-const sequelize = require('./config/database');
-const Upload = require('./models/Upload');
+import sequelize from './config/database';
+import Upload from './models/Upload';
 
 const app = express();
 
@@ -46,7 +46,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use('/api', csvRoutes);
 
 // 健康檢查端點
-app.get('/health', (req, res) => {
+app.get('/health', (req: Request, res: Response) => {
   res.json({ 
     status: 'healthy', 
     timestamp: new Date().toISOString(),
@@ -55,7 +55,7 @@ app.get('/health', (req, res) => {
 });
 
 // 根路徑
-app.get('/', (req, res) => {
+app.get('/', (req: Request, res: Response) => {
   res.json({ 
     message: 'CSV 資料繪圖系統 API',
     version: '1.0.0',
@@ -67,7 +67,7 @@ app.get('/', (req, res) => {
 });
 
 // 404 處理
-app.use('*', (req, res) => {
+app.use('*', (req: Request, res: Response) => {
   res.status(404).json({ 
     error: '找不到請求的資源',
     path: req.originalUrl 
@@ -75,7 +75,7 @@ app.use('*', (req, res) => {
 });
 
 // 全域錯誤處理
-app.use((err, req, res, next) => {
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.error('伺服器錯誤:', err);
   
   // 檔案上傳錯誤
@@ -93,7 +93,7 @@ app.use((err, req, res, next) => {
 });
 
 // 資料庫初始化與伺服器啟動
-async function startServer() {
+async function startServer(): Promise<void> {
   try {
     // 測試資料庫連線
     await sequelize.authenticate();
@@ -120,4 +120,4 @@ async function startServer() {
 // 啟動伺服器
 startServer();
 
-module.exports = app; 
+export default app; 

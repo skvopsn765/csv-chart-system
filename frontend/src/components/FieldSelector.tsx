@@ -1,16 +1,25 @@
 import React from 'react';
 
-function FieldSelector({ 
+interface FieldSelectorProps {
+  columns: string[];
+  csvData: { [key: string]: string | number }[] | null;
+  selectedXAxis: string;
+  selectedYAxis: string[];
+  onXAxisChange: (field: string) => void;
+  onYAxisChange: (fields: string[]) => void;
+}
+
+const FieldSelector: React.FC<FieldSelectorProps> = ({ 
   columns, 
   csvData, 
   selectedXAxis, 
   selectedYAxis, 
   onXAxisChange, 
   onYAxisChange 
-}) {
+}) => {
   
   // 檢查欄位是否為數值類型
-  const isNumericColumn = (columnName) => {
+  const isNumericColumn = (columnName: string): boolean => {
     if (!csvData || csvData.length === 0) return false;
     
     // 檢查前幾筆資料是否都是數字
@@ -20,7 +29,7 @@ function FieldSelector({
     for (let i = 0; i < sampleSize; i++) {
       const value = csvData[i][columnName];
       if (value !== null && value !== undefined && value !== '') {
-        const numValue = parseFloat(value);
+        const numValue = parseFloat(String(value));
         if (!isNaN(numValue)) {
           numericCount++;
         }
@@ -32,18 +41,18 @@ function FieldSelector({
   };
 
   // 取得數值欄位列表
-  const getNumericColumns = () => {
+  const getNumericColumns = (): string[] => {
     return columns.filter(column => isNumericColumn(column));
   };
 
   // 處理 X 軸欄位選擇
-  const handleXAxisChange = (event) => {
+  const handleXAxisChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const selectedValue = event.target.value;
     onXAxisChange(selectedValue);
   };
 
   // 處理 Y 軸欄位選擇
-  const handleYAxisChange = (event) => {
+  const handleYAxisChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const selectedValue = event.target.value;
     const isChecked = event.target.checked;
     
@@ -160,6 +169,6 @@ function FieldSelector({
       </div>
     </div>
   );
-}
+};
 
 export default FieldSelector; 

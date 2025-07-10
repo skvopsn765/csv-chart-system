@@ -7,13 +7,27 @@ const MAX_ROWS = 5000;
 // 後端API端點
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
-function CSVUploader({ onUpload }) {
-  const [isUploading, setIsUploading] = useState(false);
-  const [error, setError] = useState('');
-  const [uploadProgress, setUploadProgress] = useState(0);
+interface CSVUploaderProps {
+  onUpload: (rows: { [key: string]: string | number }[], columns: string[]) => void;
+}
+
+interface BackendResponse {
+  success: boolean;
+  data?: {
+    columns: string[];
+    rows: { [key: string]: string | number }[];
+  };
+  error?: string;
+  details?: string;
+}
+
+const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
 
   // 驗證檔案格式
-  const validateFile = (file) => {
+  const validateFile = (file: File): string | null => {
     // 檢查檔案副檔名
     const fileName = file.name.toLowerCase();
     if (!fileName.endsWith('.csv')) {
@@ -35,7 +49,7 @@ function CSVUploader({ onUpload }) {
   };
 
   // 上傳檔案到後端
-  const uploadFileToBackend = async (file) => {
+  const uploadFileToBackend = async (file: File): Promise<BackendResponse> => {
     const formData = new FormData();
     formData.append('csvFile', file);
 
@@ -46,7 +60,7 @@ function CSVUploader({ onUpload }) {
         // 不設定 Content-Type，讓瀏覽器自動設定
       });
 
-      const result = await response.json();
+      const result: BackendResponse = await response.json();
 
       if (!response.ok) {
         throw new Error(result.error || result.details || '上傳失敗');
@@ -55,7 +69,7 @@ function CSVUploader({ onUpload }) {
       return result;
     } catch (error) {
       // 網路錯誤處理
-      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      if (error instanceof TypeError && error.message.includes('fetch')) {
         throw new Error('無法連接到伺服器，請檢查網路連線');
       }
       throw error;
@@ -63,8 +77,8 @@ function CSVUploader({ onUpload }) {
   };
 
   // 處理檔案選擇
-  const handleFileChange = async (event) => {
-    const file = event.target.files[0];
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
+    const file = event.target.files?.[0];
     if (!file) return;
 
     // 重置狀態
@@ -113,7 +127,7 @@ function CSVUploader({ onUpload }) {
       
     } catch (error) {
       console.error('檔案上傳錯誤:', error);
-      setError(error.message || '檔案上傳失敗');
+      setError(error instanceof Error ? error.message : '檔案上傳失敗');
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
@@ -183,6 +197,6 @@ function CSVUploader({ onUpload }) {
       </div>
     </div>
   );
-}
+};
 
 export default CSVUploader; 

@@ -16,7 +16,7 @@ import {
 const CHART_TYPES = {
   LINE: 'line',
   BAR: 'bar'
-};
+} as const;
 
 // 預設顏色調色盤
 const DEFAULT_COLORS = [
@@ -24,22 +24,43 @@ const DEFAULT_COLORS = [
   '#d084d0', '#ffb347', '#87ceeb', '#dda0dd', '#98fb98'
 ];
 
-function ChartDisplay({ data, xAxis, yAxis, chartType }) {
+interface ChartDisplayProps {
+  data: { [key: string]: string | number }[] | null;
+  xAxis: string;
+  yAxis: string[];
+  chartType: 'line' | 'bar';
+}
+
+interface ChartDataPoint {
+  [key: string]: string | number;
+}
+
+interface TooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    dataKey: string;
+    value: string | number;
+    color: string;
+  }>;
+  label?: string;
+}
+
+const ChartDisplay: React.FC<ChartDisplayProps> = ({ data, xAxis, yAxis, chartType }) => {
   
   // 處理圖表資料
-  const chartData = useMemo(() => {
+  const chartData = useMemo((): ChartDataPoint[] => {
     if (!data || !xAxis || !yAxis || yAxis.length === 0) {
       return [];
     }
 
     return data.map(row => {
-      const chartRow = { [xAxis]: row[xAxis] };
+      const chartRow: ChartDataPoint = { [xAxis]: row[xAxis] };
       
       // 處理 Y 軸數值欄位
       yAxis.forEach(yField => {
         const value = row[yField];
         // 嘗試轉換為數字，失敗則設為 0
-        const numValue = parseFloat(value);
+        const numValue = parseFloat(String(value));
         chartRow[yField] = isNaN(numValue) ? 0 : numValue;
       });
       
@@ -51,7 +72,7 @@ function ChartDisplay({ data, xAxis, yAxis, chartType }) {
   const hasValidData = chartData.length > 0;
 
   // 自訂 Tooltip 格式
-  const CustomTooltip = ({ active, payload, label }) => {
+  const CustomTooltip: React.FC<TooltipProps> = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
         <div className="custom-tooltip">
@@ -68,7 +89,7 @@ function ChartDisplay({ data, xAxis, yAxis, chartType }) {
   };
 
   // 渲染摺線圖
-  const renderLineChart = () => (
+  const renderLineChart = (): React.ReactElement => (
     <LineChart
       data={chartData}
       margin={{
@@ -104,7 +125,7 @@ function ChartDisplay({ data, xAxis, yAxis, chartType }) {
   );
 
   // 渲染長條圖
-  const renderBarChart = () => (
+  const renderBarChart = (): React.ReactElement => (
     <BarChart
       data={chartData}
       margin={{
@@ -176,6 +197,6 @@ function ChartDisplay({ data, xAxis, yAxis, chartType }) {
       </div>
     </div>
   );
-}
+};
 
 export default ChartDisplay; 
