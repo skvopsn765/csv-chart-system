@@ -199,8 +199,8 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
     }
   };
 
-  // 處理重複確認 - 繼續上傳
-  const handleDuplicateConfirm = async () => {
+  // 處理重複確認 - 部分上傳
+  const handleDuplicateConfirm = async (selectedRows: any[]) => {
     if (!pendingFileData) return;
 
     setShowDuplicateConfirmation(false);
@@ -210,7 +210,13 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
     try {
       setUploadProgress(50);
       
-      // 強制上傳
+      // 如果沒有選中任何行，則取消上傳
+      if (selectedRows.length === 0) {
+        setError('請至少選擇一筆資料進行上傳');
+        return;
+      }
+      
+      // 強制上傳選中的資料
       const result = await uploadFileToBackend(pendingFileData.file, true);
       
       setUploadProgress(75);

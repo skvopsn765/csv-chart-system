@@ -44,6 +44,52 @@ export interface UploadRecord {
   createdAt: string;
 }
 
+// 資料集相關類型
+export interface Dataset {
+  id: number;
+  name: string;
+  description?: string;
+  columnsInfo: string;
+  userId: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// 資料記錄相關類型
+export interface DataRecord {
+  id: number;
+  datasetId: number;
+  dataJson: string;
+  rowHash: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// 資料集列表回應
+export interface DatasetsListResponse {
+  success: boolean;
+  data?: Dataset[];
+  pagination?: {
+    total: number;
+    limit: number;
+    offset: number;
+    hasNext: boolean;
+  };
+  error?: string;
+}
+
+// 資料集詳細回應
+export interface DatasetDetailResponse {
+  success: boolean;
+  data?: {
+    dataset: Dataset;
+    records: DataRecord[];
+    columns: string[];
+    totalRecords: number;
+  };
+  error?: string;
+}
+
 export interface UploadDetailResponse {
   success: boolean;
   data?: {

@@ -1,6 +1,6 @@
-import React from 'react';
-import { Modal, Button, Table, Alert, Space } from 'antd';
-import { ExclamationCircleOutlined, CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
+import React, { useState, useEffect } from 'react';
+import { Modal, Button, Table, Alert, Space, Checkbox } from 'antd';
+import { ExclamationCircleOutlined, CheckCircleOutlined, CloseCircleOutlined, SelectOutlined } from '@ant-design/icons';
 import { DataRow, DuplicateCheckResult } from '../../../shared/types';
 
 interface DuplicateConfirmationProps {
@@ -8,7 +8,7 @@ interface DuplicateConfirmationProps {
   duplicateResult: DuplicateCheckResult | null;
   columns: string[];
   fileName: string;
-  onConfirm: () => void;
+  onConfirm: (selectedRows: DataRow[]) => void;
   onCancel: () => void;
   loading?: boolean;
 }
@@ -22,6 +22,17 @@ export const DuplicateConfirmation: React.FC<DuplicateConfirmationProps> = ({
   onCancel,
   loading = false
 }) => {
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  
+  // 重置選擇狀態
+  useEffect(() => {
+    if (visible && duplicateResult) {
+      // 預設選擇所有行
+      const allKeys = duplicateResult.duplicateRows.map((_, index) => `duplicate-${index}`);
+      setSelectedRowKeys(allKeys);
+    }
+  }, [visible, duplicateResult]);
+
   if (!duplicateResult) return null;
 
   // 準備表格欄位
@@ -43,6 +54,36 @@ export const DuplicateConfirmation: React.FC<DuplicateConfirmationProps> = ({
     key: `duplicate-${index}`
   }));
 
+  // 處理選擇變更
+  const handleSelectChange = (selectedKeys: React.Key[]) => {
+    setSelectedRowKeys(selectedKeys);
+  };
+
+  // 處理確認上傳
+  const handleConfirm = () => {
+    const selectedRows = selectedRowKeys.map(key => {
+      const index = parseInt(key.toString().replace('duplicate-', ''));
+      return duplicateResult.duplicateRows[index];
+    });
+    onConfirm(selectedRows);
+  };
+
+  // 全選/取消全選
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const allKeys = duplicateResult.duplicateRows.map((_, index) => `duplicate-${index}`);
+      setSelectedRowKeys(allKeys);
+    } else {
+      setSelectedRowKeys([]);
+    }
+  };
+
+  const rowSelection = {
+    selectedRowKeys,
+    onChange: handleSelectChange,
+    onSelectAll: handleSelectAll,
+  };
+
   return (
     <Modal
       title={
@@ -52,7 +93,7 @@ export const DuplicateConfirmation: React.FC<DuplicateConfirmationProps> = ({
         </Space>
       }
       open={visible}
-      onOk={onConfirm}
+      onOk={handleConfirm}
       onCancel={onCancel}
       width={800}
       confirmLoading={loading}
@@ -83,12 +124,30 @@ export const DuplicateConfirmation: React.FC<DuplicateConfirmationProps> = ({
       </div>
 
       <div style={{ marginBottom: '16px' }}>
-        <h4>重複的資料內容：</h4>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+          <h4>重複的資料內容：</h4>
+          <Space>
+            <Button 
+              size="small" 
+              icon={<SelectOutlined />}
+              onClick={() => handleSelectAll(true)}
+            >
+              全選
+            </Button>
+            <Button 
+              size="small" 
+              onClick={() => handleSelectAll(false)}
+            >
+              取消全選
+            </Button>
+          </Space>
+        </div>
         <Table
           columns={tableColumns}
           dataSource={dataSource}
+          rowSelection={rowSelection}
           pagination={{
-            pageSize: 5,
+            pageSize: 10,
             showSizeChanger: false,
             showQuickJumper: false
           }}
@@ -103,7 +162,8 @@ export const DuplicateConfirmation: React.FC<DuplicateConfirmationProps> = ({
         description={
           <div>
             <p>系統發現您要上傳的資料中有 <strong>{duplicateResult.duplicateCount}</strong> 筆與資料庫中的現有資料完全相同。</p>
-            <p>如果您選擇「繼續上傳」，這些重複資料仍會被儲存到資料庫中。</p>
+            <p>您可以勾選想要上傳的資料，目前已選擇 <strong>{selectedRowKeys.length}</strong> 筆資料。</p>
+            <p>如果您選擇「繼續上傳」，選中的重複資料仍會被儲存到資料庫中。</p>
             <p>建議您檢查資料內容，確認是否需要繼續上傳。</p>
           </div>
         }

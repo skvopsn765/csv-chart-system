@@ -2,4 +2,5 @@
 
 export { CSVUploader } from './CSVUploader';
 export { DataTable } from './DataTable';
-export { DuplicateConfirmation } from './DuplicateConfirmation'; 
+export { DuplicateConfirmation } from './DuplicateConfirmation';
+export { DatasetSelector } from './DatasetSelector'; 

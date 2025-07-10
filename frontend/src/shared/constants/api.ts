@@ -11,6 +11,12 @@ export const API_ENDPOINTS = {
     UPLOAD: '/api/upload-csv',
     CHECK_DUPLICATES: '/api/check-duplicates',
     UPLOADS: '/api/uploads'
+  },
+  DATASETS: {
+    LIST: '/api/datasets',
+    DETAIL: '/api/datasets/:id',
+    CHECK_DUPLICATES: '/api/datasets/:id/check-duplicates',
+    PARTIAL_UPLOAD: '/api/datasets/:id/partial-upload'
   }
 } as const;
 

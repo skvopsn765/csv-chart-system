@@ -4,10 +4,13 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import csvRoutes from './routes/csvRoutes';
 import authRoutes from './routes/authRoutes';
+import datasetRoutes from './routes/datasetRoutes';
 // 資料庫相關 imports
 import sequelize from './config/database';
 import Upload from './models/Upload';
 import User from './models/User';
+import Dataset from './models/Dataset';
+import DataRecord from './models/DataRecord';
 
 const app = express();
 
@@ -47,6 +50,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // 路由設定
 app.use('/api/auth', authRoutes);
 app.use('/api', csvRoutes);
+app.use('/api', datasetRoutes);
 
 // 健康檢查端點
 app.get('/health', (req: Request, res: Response) => {
