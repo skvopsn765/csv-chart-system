@@ -1,0 +1,75 @@
+/* 頁籤面板主容器 */
+.tab-panel {
+  width: 100%;
+  margin: 20px 0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 頁籤標頭 */
+.tab-header {
+  display: flex;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #ddd;
+  margin: 0;
+  padding: 0;
+}
+
+/* 頁籤按鈕 */
+.tab-button {
+  background: none;
+  border: none;
+  padding: 12px 24px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  color: #6c757d;
+  transition: all 0.2s ease;
+  border-bottom: 3px solid transparent;
+  position: relative;
+}
+
+.tab-button:hover {
+  background-color: #e9ecef;
+  color: #495057;
+}
+
+.tab-button.active {
+  color: #007bff;
+  background-color: #fff;
+  border-bottom-color: #007bff;
+}
+
+.tab-button:first-child {
+  border-radius: 8px 0 0 0;
+}
+
+.tab-button:last-child {
+  border-radius: 0 8px 0 0;
+}
+
+/* 頁籤內容 */
+.tab-content {
+  padding: 20px;
+  background-color: #fff;
+  min-height: 400px;
+}
+
+.tab-pane {
+  width: 100%;
+  height: 100%;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .tab-button {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+  
+  .tab-content {
+    padding: 15px;
+  }
+} 

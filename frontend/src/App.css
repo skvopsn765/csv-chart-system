@@ -51,6 +51,38 @@ section {
   padding: 24px;
 }
 
+/* 主要頁籤區域樣式 */
+.main-tabs-section {
+  padding: 0;
+  box-shadow: none;
+  background: none;
+}
+
+/* 頁籤內容區域 */
+.chart-tab-content {
+  width: 100%;
+}
+
+.data-tab-content {
+  width: 100%;
+}
+
+/* 圖表頁籤內部區域 */
+.chart-tab-content .field-selection-section {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 24px;
+  padding: 24px;
+}
+
+.chart-tab-content .chart-section {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+}
+
 /* CSV 上傳元件樣式 */
 .csv-uploader {
   text-align: center;

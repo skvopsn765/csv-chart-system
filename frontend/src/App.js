@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import CSVUploader from './components/CSVUploader';
 import FieldSelector from './components/FieldSelector';
 import ChartDisplay from './components/ChartDisplay';
+import DataTable from './components/DataTable';
+import { TabPanel, Tab } from './components/TabPanel';
 import './App.css';
 
 // 圖表類型常數
@@ -56,38 +58,58 @@ function App() {
           <CSVUploader onUpload={handleCSVUpload} />
         </section>
 
-        {/* 欄位選擇區域 */}
+        {/* 主要頁籤區域 */}
         {columns.length > 0 && (
-          <section className="field-selection-section">
-            <FieldSelector 
-              columns={columns}
-              csvData={csvData}
-              selectedXAxis={selectedXAxis}
-              selectedYAxis={selectedYAxis}
-              onXAxisChange={handleXAxisChange}
-              onYAxisChange={handleYAxisChange}
-            />
-          </section>
-        )}
+          <section className="main-tabs-section">
+            <TabPanel defaultTab={0}>
+              {/* 圖表頁籤 */}
+              <Tab title="📊 圖表">
+                <div className="chart-tab-content">
+                  {/* 欄位選擇區域 */}
+                  <div className="field-selection-section">
+                    <FieldSelector 
+                      columns={columns}
+                      csvData={csvData}
+                      selectedXAxis={selectedXAxis}
+                      selectedYAxis={selectedYAxis}
+                      onXAxisChange={handleXAxisChange}
+                      onYAxisChange={handleYAxisChange}
+                    />
+                  </div>
 
-        {/* 圖表控制與顯示區域 */}
-        {csvData && selectedXAxis && selectedYAxis.length > 0 && (
-          <section className="chart-section">
-            <div className="chart-controls">
-              <button 
-                className={`chart-type-btn ${chartType === CHART_TYPES.LINE ? 'active' : ''}`}
-                onClick={toggleChartType}
-              >
-                {chartType === CHART_TYPES.LINE ? '摺線圖' : '長條圖'}
-              </button>
-            </div>
-            
-            <ChartDisplay 
-              data={csvData}
-              xAxis={selectedXAxis}
-              yAxis={selectedYAxis}
-              chartType={chartType}
-            />
+                  {/* 圖表控制與顯示區域 */}
+                  {csvData && selectedXAxis && selectedYAxis.length > 0 && (
+                    <div className="chart-section">
+                      <div className="chart-controls">
+                        <button 
+                          className={`chart-type-btn ${chartType === CHART_TYPES.LINE ? 'active' : ''}`}
+                          onClick={toggleChartType}
+                        >
+                          {chartType === CHART_TYPES.LINE ? '摺線圖' : '長條圖'}
+                        </button>
+                      </div>
+                      
+                      <ChartDisplay 
+                        data={csvData}
+                        xAxis={selectedXAxis}
+                        yAxis={selectedYAxis}
+                        chartType={chartType}
+                      />
+                    </div>
+                  )}
+                </div>
+              </Tab>
+
+              {/* 資料頁籤 */}
+              <Tab title="📋 資料">
+                <div className="data-tab-content">
+                  <DataTable 
+                    data={csvData}
+                    columns={columns}
+                  />
+                </div>
+              </Tab>
+            </TabPanel>
           </section>
         )}
       </main>
