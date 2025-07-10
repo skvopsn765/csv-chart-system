@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
 import Papa from 'papaparse';
+import { message } from 'antd';
 import { CSVUploaderProps, DataRow, ColumnsCheckResponse, DatasetCreateResponse, DuplicateCheckResult, DuplicateCheckResponse } from '../../../shared/types';
 import { FILE_UPLOAD_LIMITS, API_ENDPOINTS } from '../../../shared/constants';
 import { apiRequest } from '../../../features/auth';
 import { DuplicateConfirmation } from '../DuplicateConfirmation';
-import { DatasetSelector } from '../DatasetSelector';
+import { DatasetSelectorModal } from '../DatasetSelectorModal';
 import './index.css';
 
 export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [uploadProgress, setUploadProgress] = useState<number>(0);
-  const [uploadSuccess, setUploadSuccess] = useState<boolean>(false);
-  const [uploadedCount, setUploadedCount] = useState<number>(0);
   
   // CSV 解析相關狀態
   const [csvData, setCsvData] = useState<{
@@ -29,24 +28,22 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
   const [duplicateResult, setDuplicateResult] = useState<DuplicateCheckResult | null>(null);
   const [showDuplicateConfirmation, setShowDuplicateConfirmation] = useState<boolean>(false);
 
-  // 顯示成功提示
+  // 顯示成功訊息
   const showSuccessMessage = (count: number) => {
-    setUploadedCount(count);
-    setUploadSuccess(true);
-    
-    // 3秒後自動關閉成功提示
-    setTimeout(() => {
-      setUploadSuccess(false);
-      setUploadedCount(0);
-    }, 3000);
+    message.success({
+      content: `成功上傳 ${count} 筆資料！`,
+      duration: 3,
+      style: {
+        marginTop: '20px',
+        fontSize: '16px',
+      }
+    });
   };
 
   // 重置所有狀態
   const resetAllStates = () => {
     setError('');
     setUploadProgress(0);
-    setUploadSuccess(false);
-    setUploadedCount(0);
     setCsvData(null);
     setShowDatasetSelector(false);
     setSelectedDatasetId(null);
@@ -454,11 +451,7 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
         )}
 
         {/* 成功提示 */}
-        {uploadSuccess && (
-          <div className="success-message">
-            成功上傳 {uploadedCount} 筆資料！
-          </div>
-        )}
+        {/* 成功提示 */}
 
         {/* 檔案格式說明 */}
         <div className="file-info">
@@ -482,7 +475,7 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
       </div>
 
       {/* 資料集選擇對話框 */}
-      <DatasetSelector
+      <DatasetSelectorModal
         visible={showDatasetSelector}
         columns={csvData?.columns || []}
         onSelect={handleDatasetSelect}

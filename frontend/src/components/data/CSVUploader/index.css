@@ -190,40 +190,7 @@
   line-height: 1.5;
 }
 
-/* 成功提示 - 全版面覆蓋 */
-.success-message {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  font-size: 24px;
-  font-weight: 600;
-  color: white;
-  animation: successFadeIn 0.3s ease-in-out;
-}
-
-.success-message::before {
-  content: '✅';
-  margin-right: 16px;
-  font-size: 32px;
-}
-
-@keyframes successFadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
+/* 成功提示已改用 Ant Design Message 組件 */
 
 /* 檔案格式說明 */
 .file-info {
@@ -293,9 +260,5 @@
     min-width: 150px;
   }
   
-  .success-message {
-    font-size: 20px;
-    padding: 20px;
-    text-align: center;
-  }
+  /* 成功提示已改用 Ant Design Message 組件 */
 } 

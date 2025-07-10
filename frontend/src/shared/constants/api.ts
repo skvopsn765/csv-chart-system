@@ -19,6 +19,11 @@ export const API_ENDPOINTS = {
     CHECK_DUPLICATES: '/api/datasets/:id/check-duplicates',
     PARTIAL_UPLOAD: '/api/datasets/:id/partial-upload',
     CHECK_COLUMNS: '/api/datasets/check-columns'
+  },
+  RECORDS: {
+    GET: '/api/records/:id',
+    UPDATE: '/api/records/:id',
+    DELETE: '/api/records/:id'
   }
 } as const;
 

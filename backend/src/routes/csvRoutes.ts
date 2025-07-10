@@ -2,6 +2,8 @@ import express, { Request, Response } from 'express';
 import multer from 'multer';
 import Papa, { ParseResult } from 'papaparse';
 import Upload from '../models/Upload';
+import Dataset from '../models/Dataset';
+import DataRecord from '../models/DataRecord';
 import { authenticateToken } from '../middleware/auth';
 
 const router = express.Router();
@@ -550,6 +552,224 @@ router.delete('/uploads/:id', authenticateToken, async (req: Request, res: Respo
     });
   } catch (error) {
     console.error('刪除上傳記錄錯誤:', error);
+    res.status(500).json({
+      error: '伺服器處理錯誤',
+      details: process.env.NODE_ENV === 'development' ? (error as Error).message : '請稍後再試'
+    });
+  }
+});
+
+// GET /api/records/:id - 取得特定資料記錄 (需要認證)
+router.get('/records/:id', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    // 取得當前用戶 ID
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({
+        error: '無法取得用戶資訊'
+      });
+    }
+    
+    // 查詢資料記錄
+    const record = await DataRecord.findOne({
+      where: { id: id }
+    });
+    
+    if (!record) {
+      return res.status(404).json({
+        error: '找不到指定的資料記錄'
+      });
+    }
+    
+    // 查詢相關資料集
+    const dataset = await Dataset.findOne({
+      where: { id: record.datasetId },
+      attributes: ['id', 'name', 'userId']
+    });
+    
+    if (!dataset) {
+      return res.status(404).json({
+        error: '找不到相關的資料集'
+      });
+    }
+    
+    // 檢查是否為該用戶的資料
+    if (dataset.userId !== userId) {
+      return res.status(403).json({
+        error: '無權限存取此資料記錄'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: {
+        id: record.id,
+        datasetId: record.datasetId,
+        dataJson: JSON.parse(record.dataJson),
+        rowHash: record.rowHash,
+        createdAt: record.createdAt,
+        updatedAt: record.updatedAt
+      }
+    });
+  } catch (error) {
+    console.error('取得資料記錄錯誤:', error);
+    res.status(500).json({
+      error: '伺服器處理錯誤',
+      details: process.env.NODE_ENV === 'development' ? (error as Error).message : '請稍後再試'
+    });
+  }
+});
+
+// PUT /api/records/:id - 更新資料記錄 (需要認證)
+router.put('/records/:id', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { dataJson } = req.body;
+    
+    // 取得當前用戶 ID
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({
+        error: '無法取得用戶資訊'
+      });
+    }
+    
+    // 驗證輸入資料
+    if (!dataJson || typeof dataJson !== 'object') {
+      return res.status(400).json({
+        error: '無效的資料格式'
+      });
+    }
+    
+    // 查詢資料記錄
+    const record = await DataRecord.findOne({
+      where: { id: id }
+    });
+    
+    if (!record) {
+      return res.status(404).json({
+        error: '找不到指定的資料記錄'
+      });
+    }
+    
+    // 查詢相關資料集
+    const dataset = await Dataset.findOne({
+      where: { id: record.datasetId },
+      attributes: ['id', 'name', 'userId', 'columnsInfo']
+    });
+    
+    if (!dataset) {
+      return res.status(404).json({
+        error: '找不到相關的資料集'
+      });
+    }
+    
+    // 檢查是否為該用戶的資料
+    if (dataset.userId !== userId) {
+      return res.status(403).json({
+        error: '無權限修改此資料記錄'
+      });
+    }
+    
+    // 驗證資料結構是否符合資料集欄位
+    const expectedColumns = JSON.parse(dataset.columnsInfo);
+    const providedColumns = Object.keys(dataJson);
+    
+    if (JSON.stringify(expectedColumns.sort()) !== JSON.stringify(providedColumns.sort())) {
+      return res.status(400).json({
+        error: '資料欄位與資料集結構不符'
+      });
+    }
+    
+    // 計算新的雜湊值
+    const crypto = require('crypto');
+    const newRowHash = crypto.createHash('sha256')
+      .update(JSON.stringify(dataJson))
+      .digest('hex');
+    
+    // 更新資料記錄
+    await record.update({
+      dataJson: JSON.stringify(dataJson),
+      rowHash: newRowHash
+    });
+    
+    console.log(`✏️ 已更新資料記錄，ID: ${id}，用戶: ${req.user?.username}`);
+    
+    res.json({
+      success: true,
+      message: '資料記錄已成功更新',
+      data: {
+        id: record.id,
+        datasetId: record.datasetId,
+        dataJson: JSON.parse(record.dataJson),
+        rowHash: record.rowHash,
+        updatedAt: record.updatedAt
+      }
+    });
+  } catch (error) {
+    console.error('更新資料記錄錯誤:', error);
+    res.status(500).json({
+      error: '伺服器處理錯誤',
+      details: process.env.NODE_ENV === 'development' ? (error as Error).message : '請稍後再試'
+    });
+  }
+});
+
+// DELETE /api/records/:id - 刪除資料記錄 (需要認證)
+router.delete('/records/:id', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    // 取得當前用戶 ID
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({
+        error: '無法取得用戶資訊'
+      });
+    }
+    
+    // 查詢資料記錄
+    const record = await DataRecord.findOne({
+      where: { id: id }
+    });
+    
+    if (!record) {
+      return res.status(404).json({
+        error: '找不到指定的資料記錄'
+      });
+    }
+    
+    // 查詢相關資料集
+    const dataset = await Dataset.findOne({
+      where: { id: record.datasetId },
+      attributes: ['id', 'name', 'userId']
+    });
+    
+    if (!dataset) {
+      return res.status(404).json({
+        error: '找不到相關的資料集'
+      });
+    }
+    
+    // 檢查是否為該用戶的資料
+    if (dataset.userId !== userId) {
+      return res.status(403).json({
+        error: '無權限刪除此資料記錄'
+      });
+    }
+    
+    await record.destroy();
+    
+    console.log(`🗑️ 已刪除資料記錄，ID: ${id}，用戶: ${req.user?.username}`);
+    
+    res.json({
+      success: true,
+      message: '資料記錄已成功刪除'
+    });
+  } catch (error) {
+    console.error('刪除資料記錄錯誤:', error);
     res.status(500).json({
       error: '伺服器處理錯誤',
       details: process.env.NODE_ENV === 'development' ? (error as Error).message : '請稍後再試'

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ConfigProvider, theme } from 'antd';
-import { CSVUploader, FieldSelector, ChartDisplay, DataTable, AdminLayout } from './components';
+import { CSVUploader, FieldSelector, ChartDisplay, DataTable, AdminLayout, ChartAnalysis } from './components';
 import { ProtectedRoute, AuthProvider, useAuth } from './features/auth';
 import { CHART_TYPES, API_ENDPOINTS } from './shared/constants';
 import { ChartType, DataRow, DatasetsListResponse, DatasetDetailResponse } from './shared/types';
@@ -178,60 +178,10 @@ const AppContent: React.FC = () => {
         );
       
       case 'data-table':
-        return (
-          <div className="data-table-content">
-            <h2>資料表格</h2>
-            {isLoadingData && <p>載入資料中...</p>}
-            <DataTable 
-              data={csvData}
-              columns={columns}
-            />
-          </div>
-        );
+        return <DataTable />;
       
       case 'charts':
-        return (
-          <div className="charts-content">
-            <h2>圖表分析</h2>
-            {isLoadingData && <p>載入資料中...</p>}
-            {columns.length > 0 ? (
-              <>
-                <div className="field-selection-section">
-                  <FieldSelector 
-                    columns={columns}
-                    csvData={csvData}
-                    selectedXAxis={selectedXAxis}
-                    selectedYAxis={selectedYAxis}
-                    onXAxisChange={handleXAxisChange}
-                    onYAxisChange={handleYAxisChange}
-                  />
-                </div>
-
-                {csvData && selectedXAxis && selectedYAxis.length > 0 && (
-                  <div className="chart-section">
-                    <div className="chart-controls">
-                      <button 
-                        className={`chart-type-btn ${chartType === CHART_TYPES.LINE ? 'active' : ''}`}
-                        onClick={toggleChartType}
-                      >
-                        {chartType === CHART_TYPES.LINE ? '摺線圖' : '長條圖'}
-                      </button>
-                    </div>
-                    
-                    <ChartDisplay 
-                      data={csvData}
-                      xAxis={selectedXAxis}
-                      yAxis={selectedYAxis}
-                      chartType={chartType}
-                    />
-                  </div>
-                )}
-              </>
-            ) : (
-              <p>請先上傳 CSV 檔案以開始分析</p>
-            )}
-          </div>
-        );
+        return <ChartAnalysis />;
       
       case 'settings':
         return (
