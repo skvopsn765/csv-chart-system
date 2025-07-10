@@ -1,64 +1,193 @@
-# 快速安裝指南
+# CSV Chart System - Installation Guide
 
-## 前置需求
-- Node.js 16.0 或以上版本
-- npm 或 yarn
+## 🔧 System Requirements
 
-## 快速啟動
+- **Node.js** 16.0.0 or higher
+- **npm** 8.0.0 or higher
+- **Git** (for version control)
+- **Modern Browser** (Chrome, Firefox, Safari, Edge)
 
-1. **安裝依賴項目**
-   ```bash
-   npm install
-   ```
+## 📦 Installation Steps
 
-2. **啟動開發伺服器**
-   ```bash
-   npm start
-   ```
+### 1. Clone Project
+```bash
+git clone <repository-url>
+cd csv-chart-system
+```
 
-3. **開啟瀏覽器**
-   - 訪問 `http://localhost:3000`
-   - 系統會自動開啟預設瀏覽器
-
-## 測試專案
-
-1. **使用範例檔案**
-   - 專案根目錄有一個 `sample-data.csv` 檔案
-   - 可以直接上傳此檔案來測試功能
-
-2. **測試步驟**
-   - 點擊「選擇 CSV 檔案」
-   - 選擇 `sample-data.csv`
-   - 選擇 X 軸：日期
-   - 選擇 Y 軸：營收、成本、利潤（可多選）
-   - 觀察圖表生成
-   - 點擊按鈕切換圖表類型
-
-## 建置生產版本
+### 2. Install Dependencies
 
 ```bash
+# Install backend dependencies
+cd backend
+npm install
+
+# Install frontend dependencies
+cd ../frontend
+npm install
+
+# Return to root directory
+cd ..
+```
+
+### 3. Start Development Servers
+
+#### Method 1: Quick Start Script (Recommended)
+```bash
+# Windows: Double-click start-dev.bat file
+```
+
+#### Method 2: Manual Start
+```bash
+# Backend server (Terminal 1)
+cd backend
+npm run dev
+
+# Frontend app (Terminal 2)
+cd frontend
+npm start
+```
+
+### 4. Open Browser
+- Frontend app: http://localhost:3000
+- Backend API: http://localhost:5000
+
+## 🚀 Quick Start (Windows)
+
+Double-click the `start-dev.bat` file in the project root to automatically start both frontend and backend servers.
+
+## 📊 System Testing
+
+### 1. Backend API Test
+```bash
+# Health check
+curl http://localhost:5000/health
+
+# API test
+curl http://localhost:5000/api/test
+```
+
+### 2. Frontend Feature Test
+1. Open http://localhost:3000
+2. Upload `sample-data.csv` file
+3. Select X-axis and Y-axis fields
+4. Check if charts display correctly
+
+## 🛠️ Troubleshooting
+
+### Common Issues
+
+1. **Node.js version too old**
+   ```bash
+   node --version  # Check version
+   ```
+   - Please upgrade to Node.js 16.0.0 or higher
+
+2. **Port already in use**
+   - Backend uses port 5000 by default
+   - Frontend uses port 3000 by default
+   - Close other applications using these ports or modify settings
+
+3. **Dependency installation failed**
+   ```bash
+   # Clear cache
+   npm cache clean --force
+   
+   # Reinstall
+   rm -rf backend/node_modules frontend/node_modules
+   cd backend && npm install
+   cd ../frontend && npm install
+   ```
+
+4. **CORS errors**
+   - Make sure backend server is running
+   - Check frontend proxy settings
+
+5. **File upload failed**
+   - Check CSV file format is correct
+   - Confirm file size doesn't exceed 10MB
+
+## 🏭 Production Deployment
+
+### Build Applications
+```bash
+# Build frontend
+cd frontend
+npm run build
+
+# Build backend (if needed)
+cd ../backend
 npm run build
 ```
 
-建置完成後，所有檔案將位於 `build/` 目錄中。
+### Start Production Server
+```bash
+# Start backend production server
+cd backend
+npm start
 
-## 常見問題
+# Frontend files need to be served via nginx or other web server
+```
 
-**Q: 啟動失敗怎麼辦？**
-A: 
-1. 確認 Node.js 版本是否正確
-2. 刪除 `node_modules` 和 `package-lock.json`
-3. 重新執行 `npm install`
+### Environment Variables
+```bash
+# Backend
+NODE_ENV=production
+PORT=5000
 
-**Q: 圖表無法顯示？**
-A: 
-1. 確認已正確選擇 X 軸和 Y 軸
-2. 確認 Y 軸欄位包含數值資料
-3. 檢查 CSV 檔案格式是否正確
+# Frontend
+REACT_APP_API_URL=https://your-api-domain.com
+```
 
-**Q: 如何使用自己的 CSV 檔案？**
-A: 
-1. 確保檔案副檔名為 `.csv`
-2. 第一行必須是欄位名稱
-3. 檔案大小不超過 5MB
-4. 資料筆數不超過 5,000 筆 
+## 🔄 Development Commands
+
+```bash
+# Backend
+cd backend
+npm run dev      # Development mode
+npm start        # Production mode
+npm test         # Run tests
+
+# Frontend
+cd frontend
+npm start        # Development mode
+npm run build    # Build production version
+npm test         # Run tests
+```
+
+## 📁 File Structure
+
+```
+csv-chart-system/
+├── backend/                  # Backend API server
+│   ├── routes/
+│   ├── server.js
+│   └── package.json
+├── frontend/                 # Frontend React app
+│   ├── src/
+│   ├── public/
+│   └── package.json
+├── start-dev.bat            # Windows quick start script
+├── sample-data.csv          # Sample data file
+└── README.md
+```
+
+## 🔍 API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/health` | GET | Health check |
+| `/api/test` | GET | API test |
+| `/api/upload-csv` | POST | Upload CSV file |
+
+## 🆘 Support
+
+If you have issues:
+1. Check this installation guide
+2. Review [README.md](README.md) for common questions
+3. Submit an Issue to the project repository
+
+---
+
+📝 **Last Updated**: 2024  
+🔧 **Supported Platforms**: Windows, macOS, Linux 

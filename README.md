@@ -1,78 +1,78 @@
-# CSV 資料繪圖系統
+# CSV Chart System
 
-一個簡單易用的 CSV 資料視覺化系統，讓使用者上傳 CSV 檔案並即時生成圖表。
+A simple and user-friendly CSV data visualization system that allows users to upload CSV files and generate real-time charts.
 
-## 📋 功能特色
+## 📋 Features
 
-- 📊 **即時圖表生成** - 上傳 CSV 檔案後立即生成摺線圖或長條圖
-- 🔄 **多軸選擇** - 支援選擇任意 X 軸和多個 Y 軸欄位
-- 🎨 **圖表類型切換** - 支援摺線圖和長條圖兩種顯示方式
-- 🔍 **智能數據判斷** - 自動識別數值欄位和文字欄位
-- 🛡️ **安全檔案上傳** - 完整的檔案驗證和錯誤處理
-- ⚡ **高效能處理** - 支援最多 5,000 筆資料的流暢渲染
+- 📊 **Real-time Chart Generation** - Generate line charts or bar charts immediately after uploading CSV files
+- 🔄 **Multi-axis Selection** - Support selecting any X-axis and multiple Y-axis fields
+- 🎨 **Chart Type Switching** - Support both line charts and bar charts
+- 🔍 **Smart Data Detection** - Automatically identify numeric fields and text fields
+- 🛡️ **Secure File Upload** - Complete file validation and error handling
+- ⚡ **High Performance** - Smooth rendering of up to 5,000 data records
 
-## 🏗️ 技術架構
+## 🏗️ Tech Stack
 
-### 前端 (Frontend)
-- **React 18** - 現代化的使用者介面
-- **Recharts** - 高效能的圖表繪製庫
-- **CSS3** - 響應式設計和現代化樣式
+### Frontend
+- **React 18** - Modern user interface
+- **Recharts** - High-performance charting library
+- **CSS3** - Responsive design and modern styling
 
-### 後端 (Backend)
-- **Node.js + Express** - 輕量級 API 伺服器
-- **Multer** - 檔案上傳處理
-- **PapaParse** - CSV 檔案解析
-- **Helmet** - 安全性中間件
-- **CORS** - 跨域請求處理
+### Backend
+- **Node.js + Express** - Lightweight API server
+- **Multer** - File upload handling
+- **PapaParse** - CSV file parsing
+- **Helmet** - Security middleware
+- **CORS** - Cross-origin request handling
 
-## 🚀 快速開始
+## 🚀 Quick Start
 
-### 環境需求
-- Node.js 16.0.0 或更高版本
-- npm 或 yarn
+### Prerequisites
+- Node.js 16.0.0 or higher
+- npm or yarn
 
-### 安裝步驟
+### Installation Steps
 
-1. **克隆專案**
+1. **Clone Project**
    ```bash
    git clone <repository-url>
    cd csv-chart-system
    ```
 
-2. **安裝後端依賴**
+2. **Install Backend Dependencies**
    ```bash
    cd backend
    npm install
    ```
 
-3. **安裝前端依賴**
+3. **Install Frontend Dependencies**
    ```bash
    cd ../frontend
    npm install
    ```
 
-4. **啟動後端伺服器**
+4. **Start Backend Server**
    ```bash
    cd ../backend
    npm run dev
    ```
-   後端伺服器將在 http://localhost:5000 運行
+   Backend server will run at http://localhost:5000
 
-5. **啟動前端應用**
+5. **Start Frontend Application**
    ```bash
    cd ../frontend
    npm start
    ```
-   前端應用將在 http://localhost:3000 運行
+   Frontend app will run at http://localhost:3000
 
-## 📁 項目結構
+## 📁 Project Structure
 
 ```
 csv-chart-system/
-├── frontend/                 # React 前端應用
+├── frontend/                 # React frontend app
 │   ├── public/
 │   ├── src/
-│   │   ├── components/       # React 組件
+│   │   ├── components/       # React components
 │   │   │   ├── CSVUploader.js
 │   │   │   ├── FieldSelector.js
 │   │   │   └── ChartDisplay.js
@@ -80,111 +80,111 @@ csv-chart-system/
 │   │   ├── App.css
 │   │   └── index.js
 │   └── package.json
-├── backend/                  # Node.js 後端 API
+├── backend/                  # Node.js backend API
 │   ├── routes/
 │   │   └── csvRoutes.js
 │   ├── server.js
 │   └── package.json
-├── sample-data.csv          # 範例數據檔案
+├── sample-data.csv          # Sample data file
 ├── .gitignore
 └── README.md
 ```
 
-## 🔧 使用方法
+## 🔧 How to Use
 
-1. **上傳 CSV 檔案**
-   - 點擊「選擇 CSV 檔案」按鈕
-   - 選擇符合格式要求的 CSV 檔案
-   - 系統會自動上傳並解析檔案
+1. **Upload CSV File**
+   - Click "Choose CSV File" button
+   - Select a CSV file that meets format requirements
+   - System will automatically upload and parse the file
 
-2. **選擇圖表欄位**
-   - 從 X 軸下拉選單選擇一個欄位
-   - 從 Y 軸複選框選擇一個或多個數值欄位
-   - 系統會自動判斷欄位類型
+2. **Select Chart Fields**
+   - Select one field from X-axis dropdown
+   - Select one or more numeric fields from Y-axis checkboxes
+   - System will automatically detect field types
 
-3. **查看和切換圖表**
-   - 預設顯示摺線圖
-   - 點擊按鈕可切換為長條圖
-   - 圖表會即時更新
+3. **View and Switch Charts**
+   - Default display: Line chart
+   - Click button to switch to Bar chart
+   - Charts update in real-time
 
-## 📊 CSV 檔案格式要求
+## 📊 CSV File Format Requirements
 
-- **檔案格式**：.csv
-- **檔案大小**：最大 10MB
-- **資料筆數**：最大 5,000 筆
-- **編碼格式**：UTF-8
-- **第一行**：必須為欄位名稱
-- **欄位限制**：最多 100 個欄位
+- **File Format**: .csv
+- **File Size**: Maximum 10MB
+- **Data Records**: Maximum 5,000 records
+- **Encoding**: UTF-8
+- **First Row**: Must be column headers
+- **Column Limit**: Maximum 100 columns
 
-### 範例 CSV 格式
+### Sample CSV Format
 
 ```csv
-日期,營收,成本,利潤
+Date,Revenue,Cost,Profit
 2024/01/01,1000,500,500
 2024/01/02,1200,600,600
 2024/01/03,900,450,450
 ```
 
-## 🔒 安全性考量
+## 🔒 Security Considerations
 
-- 檔案類型驗證
-- 檔案大小限制
-- 資料筆數限制
-- CORS 設定
-- 請求頻率限制
-- 輸入資料清理
+- File type validation
+- File size limits
+- Data record limits
+- CORS configuration
+- Request rate limiting
+- Input data sanitization
 
-## 🐛 常見問題
+## 🐛 Common Issues
 
-### Q: 為什麼我的 CSV 檔案無法上傳？
-A: 請檢查檔案是否符合格式要求（.csv 副檔名、UTF-8 編碼、第一行為欄位名稱）
+### Q: Why can't my CSV file be uploaded?
+A: Please check if the file meets format requirements (.csv extension, UTF-8 encoding, first row as column headers)
 
-### Q: 為什麼某些欄位無法選擇為 Y 軸？
-A: Y 軸只能選擇數值欄位，系統會自動判斷欄位類型（需 70% 以上資料為數字）
+### Q: Why can't some fields be selected as Y-axis?
+A: Y-axis can only select numeric fields. System automatically detects field types (requires 70%+ data to be numbers)
 
-### Q: 圖表顯示不完整怎麼辦？
-A: 檢查資料中是否包含無效值，系統會自動將無效值轉換為 0
+### Q: Chart display is incomplete?
+A: Check if data contains invalid values. System automatically converts invalid values to 0
 
-### Q: 如何修改檔案大小限制？
-A: 修改 `backend/routes/csvRoutes.js` 中的 `MAX_FILE_SIZE` 常數
+### Q: How to modify file size limit?
+A: Modify the `MAX_FILE_SIZE` constant in `backend/routes/csvRoutes.js`
 
-## 🔄 開發命令
+## 🔄 Development Commands
 
-### 後端開發
+### Backend Development
 ```bash
 cd backend
-npm run dev      # 使用 nodemon 啟動開發伺服器
-npm start        # 啟動生產伺服器
-npm test         # 執行測試
+npm run dev      # Start development server with nodemon
+npm start        # Start production server
+npm test         # Run tests
 ```
 
-### 前端開發
+### Frontend Development
 ```bash
 cd frontend
-npm start        # 啟動開發伺服器
-npm run build    # 建構生產版本
-npm test         # 執行測試
+npm start        # Start development server
+npm run build    # Build production version
+npm test         # Run tests
 ```
 
-## 📝 API 端點
+## 📝 API Endpoints
 
 ### POST /api/upload-csv
-上傳 CSV 檔案並解析資料
+Upload CSV file and parse data
 
-**請求**：
+**Request**:
 - Method: POST
 - Content-Type: multipart/form-data
-- Body: csvFile (檔案)
+- Body: csvFile (file)
 
-**回應**：
+**Response**:
 ```json
 {
   "success": true,
-  "message": "CSV 檔案上傳成功",
+  "message": "CSV file uploaded successfully",
   "data": {
-    "columns": ["日期", "營收", "成本", "利潤"],
+    "columns": ["Date", "Revenue", "Cost", "Profit"],
     "rows": [
-      {"日期": "2024/01/01", "營收": 1000, "成本": 500, "利潤": 500}
+      {"Date": "2024/01/01", "Revenue": 1000, "Cost": 500, "Profit": 500}
     ],
     "summary": {
       "totalRows": 1,
@@ -197,33 +197,33 @@ npm test         # 執行測試
 ```
 
 ### GET /api/test
-測試 API 連線狀態
+Test API connection status
 
 ### GET /health
-健康檢查端點
+Health check endpoint
 
-## 🌟 未來擴充計畫
+## 🌟 Future Enhancement Plans
 
-- [ ] 使用者登入系統
-- [ ] 圖表匯出功能 (PNG/JPEG)
-- [ ] 更多圖表類型 (圓餅圖、雷達圖)
-- [ ] 響應式手機版介面
-- [ ] 多語系支援
-- [ ] 資料庫儲存功能
-- [ ] 圖表客製化選項
-- [ ] 資料預覽表格
-- [ ] 批次檔案處理
+- [ ] User authentication system
+- [ ] Chart export functionality (PNG/JPEG)
+- [ ] More chart types (Pie chart, Radar chart)
+- [ ] Responsive mobile interface
+- [ ] Multi-language support
+- [ ] Database storage functionality
+- [ ] Chart customization options
+- [ ] Data preview table
+- [ ] Batch file processing
 
-## 📄 授權條款
+## 📄 License
 
 MIT License
 
-## 🤝 貢獻指南
+## 🤝 Contributing
 
-歡迎提交 Issue 和 Pull Request 來改善這個項目！
+Welcome to submit Issues and Pull Requests to improve this project!
 
 ---
 
-**開發者**: 您的團隊  
-**版本**: 1.0.0  
-**最後更新**: 2024 
+**Developer**: Your Team  
+**Version**: 1.0.0  
+**Last Updated**: 2024 
