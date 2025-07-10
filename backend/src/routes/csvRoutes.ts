@@ -1,16 +1,17 @@
 import express, { Request, Response } from 'express';
 import multer from 'multer';
-import Papa from 'papaparse';
+import Papa, { ParseResult } from 'papaparse';
 import Upload from '../models/Upload';
+import { authenticateToken } from '../middleware/auth';
 
 const router = express.Router();
 
-// 檔案大小和數量限制常數
+// 常數定義
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-const MAX_ROWS = 5000;
-const MAX_COLUMNS = 100;
+const MAX_ROWS = 5000; // 最大資料列數
+const MAX_COLUMNS = 100; // 最大欄位數
 
-// 定義資料結構介面
+// 介面定義
 interface CSVData {
   [key: string]: string | number;
 }
@@ -34,7 +35,7 @@ const upload = multer({
     fileSize: MAX_FILE_SIZE,
     files: 1 // 只允許一個檔案
   },
-  fileFilter: (req, file, cb) => {
+  fileFilter: (req: Request, file: Express.Multer.File, cb: (error: Error | null, acceptFile?: boolean) => void) => {
     // 檢查檔案類型
     const allowedMimeTypes = [
       'text/csv',
@@ -135,8 +136,8 @@ interface RequestWithFile extends Request {
   file?: Express.Multer.File;
 }
 
-// POST /api/upload-csv - 上傳 CSV 檔案
-router.post('/upload-csv', upload.single('csvFile'), async (req: RequestWithFile, res: Response) => {
+// POST /api/upload-csv - 上傳 CSV 檔案 (需要認證)
+router.post('/upload-csv', authenticateToken, upload.single('csvFile'), async (req: RequestWithFile, res: Response) => {
   try {
     // 檢查是否有上傳檔案
     if (!req.file) {
@@ -149,10 +150,9 @@ router.post('/upload-csv', upload.single('csvFile'), async (req: RequestWithFile
     const csvText = req.file.buffer.toString('utf8');
     
     // 使用 Papa Parse 解析 CSV
-    const parseResult = Papa.parse(csvText, {
+    const parseResult: ParseResult<CSVData> = Papa.parse(csvText, {
       header: true, // 使用第一行作為標題
       skipEmptyLines: true,
-      encoding: 'UTF-8',
       transformHeader: (header: string) => {
         // 清理標題，移除前後空白
         return header.trim();
@@ -160,8 +160,8 @@ router.post('/upload-csv', upload.single('csvFile'), async (req: RequestWithFile
     });
     
     // 檢查解析錯誤
-    if (parseResult.errors.length > 0) {
-      const errorMessages = parseResult.errors.map(err => err.message).join(', ');
+    if (parseResult.errors && parseResult.errors.length > 0) {
+      const errorMessages = parseResult.errors.map((err: any) => err.message).join(', ');
       return res.status(400).json({
         error: 'CSV 檔案格式錯誤',
         details: errorMessages
@@ -169,11 +169,11 @@ router.post('/upload-csv', upload.single('csvFile'), async (req: RequestWithFile
     }
     
     // 取得解析後的資料和欄位
-    const { data, meta } = parseResult;
-    const columns = meta.fields || [];
+    const data = parseResult.data;
+    const columns = parseResult.meta?.fields || [];
     
     // 驗證資料格式
-    const validationErrors = validateCSVData(data as CSVData[], columns);
+    const validationErrors = validateCSVData(data, columns);
     if (validationErrors.length > 0) {
       return res.status(400).json({
         error: '資料驗證失敗',
@@ -182,7 +182,7 @@ router.post('/upload-csv', upload.single('csvFile'), async (req: RequestWithFile
     }
     
     // 清理和處理資料
-    const processedData = processCSVData(data as CSVData[], columns);
+    const processedData = processCSVData(data, columns);
     
     // 儲存到資料庫 (相當於 .NET 的 context.Add() 和 SaveChanges())
     const uploadRecord = await Upload.create({
@@ -194,7 +194,7 @@ router.post('/upload-csv', upload.single('csvFile'), async (req: RequestWithFile
       columnCount: columns.length
     });
     
-    console.log(`📊 CSV 資料已儲存到資料庫，ID: ${uploadRecord.id}`);
+    console.log(`📊 CSV 資料已儲存到資料庫，ID: ${uploadRecord.id}，用戶: ${req.user?.username}`);
     
     // 回傳成功結果
     res.json({
@@ -245,49 +245,46 @@ router.get('/test', (req: Request, res: Response) => {
   });
 });
 
-// GET /api/uploads - 取得歷史上傳記錄
-router.get('/uploads', async (req: Request, res: Response) => {
+// GET /api/uploads - 取得歷史上傳記錄 (需要認證)
+router.get('/uploads', authenticateToken, async (req: Request, res: Response) => {
   try {
+    const limit = parseInt(req.query.limit as string) || 10;
+    const offset = parseInt(req.query.offset as string) || 0;
+    
     const uploads = await Upload.findAll({
-      attributes: [
-        'id', 
-        'fileName', 
-        'fileSize', 
-        'rowCount', 
-        'columnCount',
-        'createdAt',
-        'updatedAt'
-      ],
-      order: [['createdAt', 'DESC']]  // 按上傳時間倒序
+      attributes: ['id', 'fileName', 'fileSize', 'rowCount', 'columnCount', 'createdAt'],
+      order: [['createdAt', 'DESC']],
+      limit: Math.min(limit, 100), // 限制最大查詢數量
+      offset: offset
     });
+    
+    const total = await Upload.count();
     
     res.json({
       success: true,
-      message: '取得上傳記錄成功',
-      data: uploads
+      data: uploads,
+      pagination: {
+        total,
+        limit,
+        offset,
+        hasNext: offset + limit < total
+      }
     });
-    
   } catch (error) {
     console.error('取得上傳記錄錯誤:', error);
     res.status(500).json({
-      error: '取得上傳記錄失敗',
+      error: '伺服器處理錯誤',
       details: process.env.NODE_ENV === 'development' ? (error as Error).message : '請稍後再試'
     });
   }
 });
 
-// GET /api/uploads/:id - 取得特定上傳記錄的完整資料
-router.get('/uploads/:id', async (req: Request, res: Response) => {
+// GET /api/uploads/:id - 取得特定上傳記錄 (需要認證)
+router.get('/uploads/:id', authenticateToken, async (req: Request, res: Response) => {
   try {
-    const uploadId = parseInt(req.params.id);
+    const { id } = req.params;
     
-    if (isNaN(uploadId)) {
-      return res.status(400).json({
-        error: '無效的上傳記錄 ID'
-      });
-    }
-    
-    const upload = await Upload.findByPk(uploadId);
+    const upload = await Upload.findByPk(id);
     
     if (!upload) {
       return res.status(404).json({
@@ -295,31 +292,59 @@ router.get('/uploads/:id', async (req: Request, res: Response) => {
       });
     }
     
-    // 解析 JSON 資料
+    // 解析儲存的資料
     const columns = JSON.parse(upload.columnsInfo);
-    const rows = JSON.parse(upload.dataJson);
+    const data = JSON.parse(upload.dataJson);
     
     res.json({
       success: true,
-      message: '取得上傳記錄成功',
       data: {
         id: upload.id,
         fileName: upload.fileName,
         fileSize: upload.fileSize,
         uploadDate: upload.createdAt,
-        columns: columns,
-        rows: rows,
+        columns,
+        rows: data,
         summary: {
           totalRows: upload.rowCount,
           totalColumns: upload.columnCount
         }
       }
     });
-    
   } catch (error) {
     console.error('取得上傳記錄錯誤:', error);
     res.status(500).json({
-      error: '取得上傳記錄失敗',
+      error: '伺服器處理錯誤',
+      details: process.env.NODE_ENV === 'development' ? (error as Error).message : '請稍後再試'
+    });
+  }
+});
+
+// DELETE /api/uploads/:id - 刪除上傳記錄 (需要認證)
+router.delete('/uploads/:id', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    const upload = await Upload.findByPk(id);
+    
+    if (!upload) {
+      return res.status(404).json({
+        error: '找不到指定的上傳記錄'
+      });
+    }
+    
+    await upload.destroy();
+    
+    console.log(`🗑️ 已刪除上傳記錄，ID: ${id}，用戶: ${req.user?.username}`);
+    
+    res.json({
+      success: true,
+      message: '上傳記錄已成功刪除'
+    });
+  } catch (error) {
+    console.error('刪除上傳記錄錯誤:', error);
+    res.status(500).json({
+      error: '伺服器處理錯誤',
       details: process.env.NODE_ENV === 'development' ? (error as Error).message : '請稍後再試'
     });
   }

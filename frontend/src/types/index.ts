@@ -40,7 +40,8 @@ export interface CSVUploaderProps {
   onDataUpload: (data: CSVData) => void;
 }
 
-export type ChartType = 'line' | 'bar' | 'area' | 'scatter' | 'pie';
+// 暫時只支援 line 和 bar 圖表類型，符合當前 ChartDisplay 組件的實現
+export type ChartType = 'line' | 'bar';
 
 export interface ChartConfig {
   type: ChartType;

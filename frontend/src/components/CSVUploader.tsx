@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
+import { apiRequest } from '../utils/auth';
 
 // 最大檔案大小常數 (10MB)
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 // 最大資料筆數常數
 const MAX_ROWS = 5000;
-// 後端API端點
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 interface CSVUploaderProps {
   onUpload: (rows: { [key: string]: string | number }[], columns: string[]) => void;
@@ -54,10 +53,10 @@ const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
     formData.append('csvFile', file);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/upload-csv`, {
+      const response = await apiRequest('/api/upload-csv', {
         method: 'POST',
-        body: formData,
-        // 不設定 Content-Type，讓瀏覽器自動設定
+        body: formData
+        // 不設置 headers，讓 apiRequest 自動處理
       });
 
       const result: BackendResponse = await response.json();
@@ -188,10 +187,10 @@ const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
           </ul>
         </div>
 
-        {/* 伺服器連線狀態 */}
+        {/* 認證狀態 */}
         <div className="server-status">
           <small>
-            🔗 後端伺服器：{API_BASE_URL}
+            🔒 已通過身份驗證
           </small>
         </div>
       </div>

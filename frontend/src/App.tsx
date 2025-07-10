@@ -4,6 +4,9 @@ import FieldSelector from './components/FieldSelector';
 import ChartDisplay from './components/ChartDisplay';
 import DataTable from './components/DataTable';
 import { TabPanel, Tab } from './components/TabPanel';
+import UserInfo from './components/UserInfo';
+import ProtectedRoute from './components/ProtectedRoute';
+import { AuthProvider } from './contexts/AuthContext';
 import { ChartType, CSVData } from './types';
 import './App.css';
 
@@ -17,7 +20,7 @@ interface CSVDataStructure {
   [key: string]: string | number;
 }
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
   // 主要狀態管理
   const [csvData, setCsvData] = useState<CSVDataStructure[] | null>(null); // CSV 解析後的資料
   const [columns, setColumns] = useState<string[]>([]); // 欄位名稱陣列
@@ -58,6 +61,9 @@ const App: React.FC = () => {
       </header>
       
       <main className="App-main">
+        {/* 用戶信息區域 */}
+        <UserInfo />
+
         {/* CSV 上傳區域 */}
         <section className="upload-section">
           <CSVUploader onUpload={handleCSVUpload} />
@@ -119,6 +125,16 @@ const App: React.FC = () => {
         )}
       </main>
     </div>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <ProtectedRoute>
+        <AppContent />
+      </ProtectedRoute>
+    </AuthProvider>
   );
 };
 

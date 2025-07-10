@@ -3,9 +3,11 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import csvRoutes from './routes/csvRoutes';
+import authRoutes from './routes/authRoutes';
 // 資料庫相關 imports
 import sequelize from './config/database';
 import Upload from './models/Upload';
+import User from './models/User';
 
 const app = express();
 
@@ -43,6 +45,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // 路由設定
+app.use('/api/auth', authRoutes);
 app.use('/api', csvRoutes);
 
 // 健康檢查端點
@@ -60,7 +63,15 @@ app.get('/', (req: Request, res: Response) => {
     message: 'CSV 資料繪圖系統 API',
     version: '1.0.0',
     endpoints: {
-      upload: 'POST /api/upload-csv',
+      auth: {
+        register: 'POST /api/auth/register',
+        login: 'POST /api/auth/login',
+        me: 'GET /api/auth/me'
+      },
+      csv: {
+        upload: 'POST /api/upload-csv',
+        test: 'GET /api/test'
+      },
       health: 'GET /health'
     }
   });
@@ -108,6 +119,7 @@ async function startServer(): Promise<void> {
       console.log(`🚀 伺服器運行在 http://localhost:${PORT}`);
       console.log(`📝 環境: ${NODE_ENV}`);
       console.log(`📊 API 端點: http://localhost:${PORT}/api`);
+      console.log(`🔐 認證端點: http://localhost:${PORT}/api/auth`);
       console.log(`🗄️  資料庫: SQLite (./data/uploads.db)`);
     });
     
