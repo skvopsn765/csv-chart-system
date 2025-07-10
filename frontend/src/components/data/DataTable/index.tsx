@@ -1,6 +1,6 @@
 import React from 'react';
 import { DataTableProps } from '../../../shared/types';
-import './index.module.css';
+import './index.css';
 
 export const DataTable: React.FC<DataTableProps> = ({ data, columns }) => {
   

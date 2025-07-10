@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { TabPanelProps, TabProps } from '../../../shared/types';
-import './index.module.css';
+import './index.css';
 
 export const TabPanel: React.FC<TabPanelProps> = ({ children, defaultTab = 0 }) => {
   const [activeTab, setActiveTab] = useState<number>(defaultTab);

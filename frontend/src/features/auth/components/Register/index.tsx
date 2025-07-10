@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { RegisterProps } from '../../types/auth';
-import './index.module.css';
+import './index.css';
 
 export const Register: React.FC<RegisterProps> = ({ onSwitchToLogin }) => {
   const [username, setUsername] = useState('');

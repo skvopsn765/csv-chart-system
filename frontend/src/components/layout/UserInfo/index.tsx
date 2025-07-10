@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../../features/auth';
-import './index.module.css';
+import './index.css';
 
 export const UserInfo: React.FC = () => {
   const { user, logout } = useAuth();
