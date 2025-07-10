@@ -41,13 +41,14 @@
 }
 
 .auth-card {
-  background: rgba(255, 255, 255, 0.98);
+  background: rgba(255, 255, 255, 0.98) !important;
   backdrop-filter: blur(20px);
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(22, 119, 255, 0.15);
   padding: 40px;
   border: 1px solid rgba(22, 119, 255, 0.1);
   animation: cardFadeIn 0.8s ease-out;
+  color: #262626 !important;
 }
 
 .auth-header {
@@ -239,18 +240,4 @@
   box-shadow: 0 0 0 4px rgba(255, 77, 79, 0.1);
 }
 
-/* 深色模式支援 */
-@media (prefers-color-scheme: dark) {
-  .auth-card {
-    background: rgba(20, 20, 20, 0.95);
-    color: #fff;
-  }
-  
-  .auth-title {
-    color: #fff;
-  }
-  
-  .auth-subtitle {
-    color: #a0a0a0;
-  }
-} 
+/* 保持明亮的設計，不使用深色模式 */ 
