@@ -1,6 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const Papa = require('papaparse');
+const Upload = require('../models/Upload');  // 引入資料庫模型
 const router = express.Router();
 
 // 檔案大小和數量限制常數
@@ -160,10 +161,23 @@ router.post('/upload-csv', upload.single('csvFile'), async (req, res) => {
     // 清理和處理資料
     const processedData = processCSVData(data, columns);
     
+    // 儲存到資料庫 (相當於 .NET 的 context.Add() 和 SaveChanges())
+    const uploadRecord = await Upload.create({
+      fileName: req.file.originalname,
+      fileSize: req.file.size,
+      columnsInfo: JSON.stringify(columns),
+      dataJson: JSON.stringify(processedData),
+      rowCount: processedData.length,
+      columnCount: columns.length
+    });
+    
+    console.log(`📊 CSV 資料已儲存到資料庫，ID: ${uploadRecord.id}`);
+    
     // 回傳成功結果
     res.json({
       success: true,
-      message: 'CSV 檔案上傳成功',
+      message: 'CSV 檔案上傳並儲存成功',
+      uploadId: uploadRecord.id,  // 回傳資料庫 ID
       data: {
         columns: columns,
         rows: processedData,
@@ -171,7 +185,8 @@ router.post('/upload-csv', upload.single('csvFile'), async (req, res) => {
           totalRows: processedData.length,
           totalColumns: columns.length,
           fileName: req.file.originalname,
-          fileSize: req.file.size
+          fileSize: req.file.size,
+          uploadDate: uploadRecord.createdAt
         }
       }
     });
@@ -205,6 +220,86 @@ router.get('/test', (req, res) => {
       maxColumns: MAX_COLUMNS
     }
   });
+});
+
+// GET /api/uploads - 取得歷史上傳記錄
+router.get('/uploads', async (req, res) => {
+  try {
+    const uploads = await Upload.findAll({
+      attributes: [
+        'id', 
+        'fileName', 
+        'fileSize', 
+        'rowCount', 
+        'columnCount',
+        'createdAt',
+        'updatedAt'
+      ],
+      order: [['createdAt', 'DESC']]  // 按上傳時間倒序
+    });
+    
+    res.json({
+      success: true,
+      message: '取得上傳記錄成功',
+      data: uploads
+    });
+    
+  } catch (error) {
+    console.error('取得上傳記錄錯誤:', error);
+    res.status(500).json({
+      error: '取得上傳記錄失敗',
+      details: process.env.NODE_ENV === 'development' ? error.message : '請稍後再試'
+    });
+  }
+});
+
+// GET /api/uploads/:id - 取得特定上傳記錄的完整資料
+router.get('/uploads/:id', async (req, res) => {
+  try {
+    const uploadId = parseInt(req.params.id);
+    
+    if (isNaN(uploadId)) {
+      return res.status(400).json({
+        error: '無效的上傳記錄 ID'
+      });
+    }
+    
+    const upload = await Upload.findByPk(uploadId);
+    
+    if (!upload) {
+      return res.status(404).json({
+        error: '找不到指定的上傳記錄'
+      });
+    }
+    
+    // 解析 JSON 資料
+    const columns = JSON.parse(upload.columnsInfo);
+    const rows = JSON.parse(upload.dataJson);
+    
+    res.json({
+      success: true,
+      message: '取得上傳記錄成功',
+      data: {
+        id: upload.id,
+        fileName: upload.fileName,
+        fileSize: upload.fileSize,
+        uploadDate: upload.createdAt,
+        columns: columns,
+        rows: rows,
+        summary: {
+          totalRows: upload.rowCount,
+          totalColumns: upload.columnCount
+        }
+      }
+    });
+    
+  } catch (error) {
+    console.error('取得上傳記錄錯誤:', error);
+    res.status(500).json({
+      error: '取得上傳記錄失敗',
+      details: process.env.NODE_ENV === 'development' ? error.message : '請稍後再試'
+    });
+  }
 });
 
 module.exports = router; 

@@ -3,6 +3,9 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const csvRoutes = require('./routes/csvRoutes');
+// 資料庫相關 imports
+const sequelize = require('./config/database');
+const Upload = require('./models/Upload');
 
 const app = express();
 
@@ -89,11 +92,32 @@ app.use((err, req, res, next) => {
   });
 });
 
+// 資料庫初始化與伺服器啟動
+async function startServer() {
+  try {
+    // 測試資料庫連線
+    await sequelize.authenticate();
+    console.log('🗄️  資料庫連線成功');
+    
+    // 建立資料表 (相當於 .NET 的 EnsureCreated 或 Database.Migrate)
+    await sequelize.sync({ force: false }); // force: false 表示不覆蓋現有資料
+    console.log('📊 資料表建立完成');
+    
+    // 啟動伺服器
+    app.listen(PORT, () => {
+      console.log(`🚀 伺服器運行在 http://localhost:${PORT}`);
+      console.log(`📝 環境: ${NODE_ENV}`);
+      console.log(`📊 API 端點: http://localhost:${PORT}/api`);
+      console.log(`🗄️  資料庫: SQLite (./data/uploads.db)`);
+    });
+    
+  } catch (error) {
+    console.error('❌ 伺服器啟動失敗:', error);
+    process.exit(1);
+  }
+}
+
 // 啟動伺服器
-app.listen(PORT, () => {
-  console.log(`🚀 伺服器運行在 http://localhost:${PORT}`);
-  console.log(`📝 環境: ${NODE_ENV}`);
-  console.log(`📊 API 端點: http://localhost:${PORT}/api`);
-});
+startServer();
 
 module.exports = app; 
