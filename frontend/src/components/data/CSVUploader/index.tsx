@@ -54,6 +54,25 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
     setShowDuplicateConfirmation(false);
   };
 
+  // 完全重新開始上傳流程
+  const handleRestart = () => {
+    console.log('🔄 用戶選擇重新開始');
+    resetAllStates();
+    
+    // 重置檔案輸入
+    const fileInput = document.getElementById('csv-file-input') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
+    }
+  };
+
+  // 重新開啟資料集選擇器
+  const handleReopenDatasetSelector = () => {
+    console.log('🔄 重新開啟資料集選擇器');
+    setError('');
+    setShowDatasetSelector(true);
+  };
+
   // 驗證檔案格式
   const validateFile = (file: File): string | null => {
     const fileName = file.name.toLowerCase();
@@ -180,28 +199,42 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
   // 處理檔案選擇
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    
+    console.log('🔍 handleFileChange 被調用');
+    console.log('選擇的檔案:', file?.name || '沒有檔案');
+    
+    if (!file) {
+      console.log('⚠️ 沒有選擇檔案，返回');
+      return;
+    }
 
     // 重置狀態
+    console.log('🔄 重置所有狀態');
     resetAllStates();
 
     // 驗證檔案
     const validationError = validateFile(file);
     if (validationError) {
+      console.log('❌ 檔案驗證失敗:', validationError);
       setError(validationError);
       return;
     }
 
+    console.log('✅ 檔案驗證通過，開始處理');
     setIsUploading(true);
     setUploadProgress(25);
 
     try {
       // 解析 CSV 檔案
+      console.log('📄 開始解析 CSV 檔案');
       const { columns, rows } = await parseCSVFile(file);
+      console.log(`📊 CSV 解析完成: ${rows.length} 筆資料, ${columns.length} 個欄位`);
       setUploadProgress(50);
 
       // 檢查欄位結構
+      console.log('🔍 檢查欄位結構');
       const checkResult = await checkColumnsStructure(columns);
+      console.log('🔍 欄位結構檢查結果:', checkResult);
       setUploadProgress(75);
 
       // 設置 CSV 資料
@@ -211,21 +244,25 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
         fileName: file.name
       });
 
+      console.log('💾 CSV 資料已設置，準備顯示資料集選擇器');
+      
       if (checkResult.data?.hasMatching) {
-        // 如果有匹配的資料集，顯示選擇器
+        console.log('✅ 找到匹配的資料集，顯示選擇器');
         setShowDatasetSelector(true);
       } else {
-        // 如果沒有匹配的資料集，也顯示選擇器讓用戶創建新的
+        console.log('🆕 沒有匹配的資料集，顯示創建新資料集選項');
         setShowDatasetSelector(true);
       }
 
       setUploadProgress(100);
+      console.log('✅ 檔案處理完成');
     } catch (error) {
-      console.error('檔案處理錯誤:', error);
+      console.error('❌ 檔案處理錯誤:', error);
       setError(error instanceof Error ? error.message : '檔案處理失敗');
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
+      console.log('🏁 handleFileChange 處理結束');
     }
   };
 
@@ -327,13 +364,23 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
   const handleDuplicateCancel = () => {
     setShowDuplicateConfirmation(false);
     setDuplicateResult(null);
+    // 重複確認取消後，可以讓用戶重新選擇資料集
+    setShowDatasetSelector(true);
   };
 
   // 處理資料集選擇取消
   const handleDatasetCancel = () => {
     setShowDatasetSelector(false);
-    setCsvData(null);
+    // 不要清空csvData，因為用戶可能想重新選擇資料集而不是重新上傳檔案
+    // setCsvData(null); // 移除此行
     setSelectedDatasetId(null);
+    setDuplicateResult(null);
+    
+    // 重置檔案輸入，允許重新選擇同一檔案
+    const fileInput = document.getElementById('csv-file-input') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
+    }
   };
 
   return (
@@ -357,6 +404,34 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
             {isUploading ? '處理中...' : '選擇 CSV 檔案'}
           </label>
         </div>
+
+        {/* CSV 已解析但對話框關閉時的狀態 */}
+        {csvData && !showDatasetSelector && !showDuplicateConfirmation && !isUploading && (
+          <div className="csv-parsed-status">
+            <div className="parsed-info">
+              <h4>✅ 已解析 CSV 檔案：{csvData.fileName}</h4>
+              <p>共 {csvData.rows.length} 筆資料，{csvData.columns.length} 個欄位</p>
+              <p className="columns-preview">
+                欄位：{csvData.columns.slice(0, 3).join(', ')}
+                {csvData.columns.length > 3 && ` 等 ${csvData.columns.length} 個欄位`}
+              </p>
+            </div>
+            <div className="action-buttons">
+              <button 
+                onClick={handleReopenDatasetSelector}
+                className="action-button primary"
+              >
+                繼續選擇資料集
+              </button>
+              <button 
+                onClick={handleRestart}
+                className="action-button secondary"
+              >
+                重新選擇檔案
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* 上傳進度條 */}
         {isUploading && (
