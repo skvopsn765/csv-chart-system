@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { CSVUploader, FieldSelector, ChartDisplay, DataTable, TabPanel, Tab, UserInfo } from './components';
+import { ConfigProvider, theme } from 'antd';
+import { CSVUploader, FieldSelector, ChartDisplay, DataTable, AdminLayout } from './components';
 import { ProtectedRoute, AuthProvider } from './features/auth';
 import { CHART_TYPES } from './shared/constants';
 import { ChartType, DataRow } from './shared/types';
+import zhTW from 'antd/locale/zh_TW';
 import './App.css';
 
 const AppContent: React.FC = () => {
@@ -12,6 +14,7 @@ const AppContent: React.FC = () => {
   const [selectedXAxis, setSelectedXAxis] = useState<string>(''); // 選擇的 X 軸欄位
   const [selectedYAxis, setSelectedYAxis] = useState<string[]>([]); // 選擇的 Y 軸欄位陣列
   const [chartType, setChartType] = useState<ChartType>(CHART_TYPES.LINE); // 圖表類型
+  const [currentPage, setCurrentPage] = useState<string>('dashboard'); // 目前頁面
 
   // 處理 CSV 上傳成功
   const handleCSVUpload = (data: DataRow[], columnsData: string[]): void => {
@@ -39,87 +42,136 @@ const AppContent: React.FC = () => {
     );
   };
 
-  return (
-    <div className="App">
-      <header className="App-header">
-        <h1>CSV 資料繪圖系統</h1>
-      </header>
-      
-      <main className="App-main">
-        {/* 用戶信息區域 */}
-        <UserInfo />
+  // 處理選單選擇
+  const handleMenuSelect = (key: string): void => {
+    setCurrentPage(key);
+  };
 
-        {/* CSV 上傳區域 */}
-        <section className="upload-section">
-          <CSVUploader onUpload={handleCSVUpload} />
-        </section>
-
-        {/* 主要頁籤區域 */}
-        {columns.length > 0 && (
-          <section className="main-tabs-section">
-            <TabPanel defaultTab={0}>
-              {/* 圖表頁籤 */}
-              <Tab title="📊 圖表">
-                <div className="chart-tab-content">
-                  {/* 欄位選擇區域 */}
-                  <div className="field-selection-section">
-                    <FieldSelector 
-                      columns={columns}
-                      csvData={csvData}
-                      selectedXAxis={selectedXAxis}
-                      selectedYAxis={selectedYAxis}
-                      onXAxisChange={handleXAxisChange}
-                      onYAxisChange={handleYAxisChange}
-                    />
-                  </div>
-
-                  {/* 圖表控制與顯示區域 */}
-                  {csvData && selectedXAxis && selectedYAxis.length > 0 && (
-                    <div className="chart-section">
-                      <div className="chart-controls">
-                        <button 
-                          className={`chart-type-btn ${chartType === CHART_TYPES.LINE ? 'active' : ''}`}
-                          onClick={toggleChartType}
-                        >
-                          {chartType === CHART_TYPES.LINE ? '摺線圖' : '長條圖'}
-                        </button>
-                      </div>
-                      
-                      <ChartDisplay 
-                        data={csvData}
-                        xAxis={selectedXAxis}
-                        yAxis={selectedYAxis}
-                        chartType={chartType}
-                      />
-                    </div>
-                  )}
+  // 渲染頁面內容
+  const renderPageContent = () => {
+    switch (currentPage) {
+      case 'dashboard':
+        return (
+          <div className="dashboard-content">
+            <h2>儀表板</h2>
+            <p>歡迎使用 CSV 管理系統！</p>
+            {csvData && (
+              <div className="dashboard-stats">
+                <div className="stat-card">
+                  <h3>資料筆數</h3>
+                  <p>{csvData.length}</p>
                 </div>
-              </Tab>
-
-              {/* 資料頁籤 */}
-              <Tab title="📋 資料">
-                <div className="data-tab-content">
-                  <DataTable 
-                    data={csvData}
+                <div className="stat-card">
+                  <h3>欄位數量</h3>
+                  <p>{columns.length}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      
+      case 'csv-upload':
+        return (
+          <div className="csv-upload-content">
+            <h2>CSV 上傳</h2>
+            <CSVUploader onUpload={handleCSVUpload} />
+          </div>
+        );
+      
+      case 'data-table':
+        return (
+          <div className="data-table-content">
+            <h2>資料表格</h2>
+            <DataTable 
+              data={csvData}
+              columns={columns}
+            />
+          </div>
+        );
+      
+      case 'charts':
+        return (
+          <div className="charts-content">
+            <h2>圖表分析</h2>
+            {columns.length > 0 ? (
+              <>
+                <div className="field-selection-section">
+                  <FieldSelector 
                     columns={columns}
+                    csvData={csvData}
+                    selectedXAxis={selectedXAxis}
+                    selectedYAxis={selectedYAxis}
+                    onXAxisChange={handleXAxisChange}
+                    onYAxisChange={handleYAxisChange}
                   />
                 </div>
-              </Tab>
-            </TabPanel>
-          </section>
-        )}
-      </main>
-    </div>
+
+                {csvData && selectedXAxis && selectedYAxis.length > 0 && (
+                  <div className="chart-section">
+                    <div className="chart-controls">
+                      <button 
+                        className={`chart-type-btn ${chartType === CHART_TYPES.LINE ? 'active' : ''}`}
+                        onClick={toggleChartType}
+                      >
+                        {chartType === CHART_TYPES.LINE ? '摺線圖' : '長條圖'}
+                      </button>
+                    </div>
+                    
+                    <ChartDisplay 
+                      data={csvData}
+                      xAxis={selectedXAxis}
+                      yAxis={selectedYAxis}
+                      chartType={chartType}
+                    />
+                  </div>
+                )}
+              </>
+            ) : (
+              <p>請先上傳 CSV 檔案以開始分析</p>
+            )}
+          </div>
+        );
+      
+      case 'settings':
+        return (
+          <div className="settings-content">
+            <h2>系統設定</h2>
+            <p>系統設定功能開發中...</p>
+          </div>
+        );
+      
+      default:
+        return <div>頁面未找到</div>;
+    }
+  };
+
+  return (
+    <AdminLayout 
+      currentPage={currentPage}
+      onMenuSelect={handleMenuSelect}
+    >
+      {renderPageContent()}
+    </AdminLayout>
   );
 };
 
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <ProtectedRoute>
-        <AppContent />
-      </ProtectedRoute>
-    </AuthProvider>
+    <ConfigProvider
+      locale={zhTW}
+      theme={{
+        algorithm: theme.defaultAlgorithm,
+        token: {
+          colorPrimary: '#1677ff',
+        },
+      }}
+    >
+      <AuthProvider>
+        <ProtectedRoute>
+          <AppContent />
+        </ProtectedRoute>
+      </AuthProvider>
+    </ConfigProvider>
   );
 };
 

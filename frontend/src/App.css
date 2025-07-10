@@ -14,32 +14,94 @@ body {
   background-color: #f5f5f5;
 }
 
-/* 主要應用程式容器 */
-.App {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+/* 頁面內容樣式 */
+.dashboard-content,
+.csv-upload-content,
+.data-table-content,
+.charts-content,
+.settings-content {
+  padding: 24px;
 }
 
-.App-header {
-  background-color: #282c34;
-  color: white;
-  text-align: center;
+.dashboard-content h2,
+.csv-upload-content h2,
+.data-table-content h2,
+.charts-content h2,
+.settings-content h2 {
+  color: #262626;
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  border-bottom: 2px solid #1677ff;
+  padding-bottom: 8px;
+}
+
+/* 儀表板樣式 */
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 8px;
   padding: 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: transform 0.3s ease;
 }
 
-.App-header h1 {
-  font-size: 2rem;
+.stat-card:hover {
+  transform: translateY(-2px);
+}
+
+.stat-card h3 {
+  color: #8c8c8c;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.stat-card p {
+  color: #1677ff;
+  font-size: 32px;
+  font-weight: 700;
   margin: 0;
 }
 
-.App-main {
-  flex: 1;
-  padding: 20px;
-  max-width: 1200px;
+/* CSV 上傳頁面樣式 */
+.csv-upload-content {
+  max-width: 800px;
   margin: 0 auto;
+}
+
+/* 資料表格頁面樣式 */
+.data-table-content {
   width: 100%;
+  overflow-x: auto;
+}
+
+/* 圖表分析頁面樣式 */
+.charts-content {
+  width: 100%;
+}
+
+.field-selection-section {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 24px;
+  padding: 24px;
+}
+
+.chart-section {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 24px;
 }
 
 /* 區塊樣式 */
