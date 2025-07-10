@@ -9,12 +9,29 @@ export interface CSVData {
   rows: DataRow[];
 }
 
+// 重複檢查相關類型
+export interface DuplicateCheckResult {
+  hasDuplicates: boolean;
+  duplicateCount: number;
+  duplicateRows: DataRow[];
+  existingDataCount: number;
+}
+
+export interface DuplicateCheckResponse {
+  success: boolean;
+  data?: DuplicateCheckResult;
+  error?: string;
+  details?: string;
+}
+
 // 與後端 API 回應相符的資料結構
 export interface CSVParseResponse {
   success: boolean;
   data?: CSVData;
   error?: string;
   details?: string;
+  duplicateCheck?: DuplicateCheckResult;
+  message?: string;
 }
 
 // CSV 上傳器相關類型

@@ -8,7 +8,8 @@ export const API_ENDPOINTS = {
     ME: '/api/auth/me'
   },
   CSV: {
-    UPLOAD: '/api/upload-csv'
+    UPLOAD: '/api/upload-csv',
+    CHECK_DUPLICATES: '/api/check-duplicates'
   }
 } as const;
 

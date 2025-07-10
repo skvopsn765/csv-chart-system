@@ -16,6 +16,19 @@ interface CSVData {
   [key: string]: string | number;
 }
 
+// 重複檢查相關介面
+interface DuplicateCheckRequest {
+  columns: string[];
+  rows: CSVData[];
+}
+
+interface DuplicateCheckResult {
+  hasDuplicates: boolean;
+  duplicateCount: number;
+  duplicateRows: CSVData[];
+  existingDataCount: number;
+}
+
 interface ProcessedCSVData {
   columns: string[];
   rows: CSVData[];
@@ -131,6 +144,83 @@ const processCSVData = (data: CSVData[], columns: string[]): CSVData[] => {
   return processedData;
 };
 
+// 重複檢查函數 - 比較兩個資料行是否完全相同
+const isRowDuplicate = (row1: CSVData, row2: CSVData, columns: string[]): boolean => {
+  // 所有欄位都必須相同才算重複
+  return columns.every(col => {
+    const value1 = row1[col];
+    const value2 = row2[col];
+    
+    // 處理空值比較
+    if (value1 === null || value1 === undefined || value1 === '') {
+      return value2 === null || value2 === undefined || value2 === '';
+    }
+    
+    // 轉換為字串並去除空白進行比較
+    const str1 = String(value1).trim();
+    const str2 = String(value2).trim();
+    
+    return str1 === str2;
+  });
+};
+
+// 檢查新資料是否與現有資料重複
+const checkDuplicateData = async (newRows: CSVData[], newColumns: string[]): Promise<DuplicateCheckResult> => {
+  try {
+    // 取得所有現有的上傳記錄
+    const existingUploads = await Upload.findAll({
+      attributes: ['dataJson', 'columnsInfo']
+    });
+    
+    const duplicateRows: CSVData[] = [];
+    let existingDataCount = 0;
+    
+    // 檢查每個現有上傳記錄
+    for (const upload of existingUploads) {
+      try {
+        const existingColumns = JSON.parse(upload.columnsInfo);
+        const existingRows = JSON.parse(upload.dataJson);
+        
+        existingDataCount += existingRows.length;
+        
+        // 只有當欄位結構相同時才進行比較
+        if (JSON.stringify(existingColumns.sort()) === JSON.stringify(newColumns.sort())) {
+          // 檢查每一行新資料是否與現有資料重複
+          for (const newRow of newRows) {
+            const isDuplicate = existingRows.some((existingRow: CSVData) => 
+              isRowDuplicate(newRow, existingRow, newColumns)
+            );
+            
+            if (isDuplicate) {
+              // 避免重複加入相同的重複資料
+              const alreadyInDuplicates = duplicateRows.some(dupRow => 
+                isRowDuplicate(newRow, dupRow, newColumns)
+              );
+              
+              if (!alreadyInDuplicates) {
+                duplicateRows.push(newRow);
+              }
+            }
+          }
+        }
+      } catch (parseError) {
+        console.error('解析現有資料時發生錯誤:', parseError);
+        // 繼續處理其他記錄
+      }
+    }
+    
+    return {
+      hasDuplicates: duplicateRows.length > 0,
+      duplicateCount: duplicateRows.length,
+      duplicateRows: duplicateRows,
+      existingDataCount: existingDataCount
+    };
+  } catch (error) {
+    console.error('檢查重複資料時發生錯誤:', error);
+    throw error;
+  }
+};
+
 // 擴展 Request 介面以包含 file 屬性
 interface RequestWithFile extends Request {
   file?: Express.Multer.File;
@@ -145,6 +235,9 @@ router.post('/upload-csv', authenticateToken, upload.single('csvFile'), async (r
         error: '請選擇一個 CSV 檔案'
       });
     }
+    
+    // 檢查是否強制上傳（跳過重複檢查）
+    const forceUpload = req.body.forceUpload === 'true';
     
     // 解析 CSV 內容
     const csvText = req.file.buffer.toString('utf8');
@@ -183,6 +276,20 @@ router.post('/upload-csv', authenticateToken, upload.single('csvFile'), async (r
     
     // 清理和處理資料
     const processedData = processCSVData(data, columns);
+    
+    // 如果不是強制上傳，檢查重複資料
+    if (!forceUpload) {
+      const duplicateResult = await checkDuplicateData(processedData, columns);
+      
+      if (duplicateResult.hasDuplicates) {
+        return res.status(409).json({
+          error: '發現重複資料',
+          success: false,
+          duplicateCheck: duplicateResult,
+          message: `發現 ${duplicateResult.duplicateCount} 筆重複資料，是否要繼續上傳？`
+        });
+      }
+    }
     
     // 儲存到資料庫 (相當於 .NET 的 context.Add() 和 SaveChanges())
     const uploadRecord = await Upload.create({
@@ -227,6 +334,41 @@ router.post('/upload-csv', authenticateToken, upload.single('csvFile'), async (r
     
     res.status(500).json({
       error: '伺服器處理錯誤',
+      details: process.env.NODE_ENV === 'development' ? (error as Error).message : '請稍後再試'
+    });
+  }
+});
+
+// POST /api/check-duplicates - 檢查重複資料 (需要認證)
+router.post('/check-duplicates', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { columns, rows }: DuplicateCheckRequest = req.body;
+    
+    // 驗證請求資料
+    if (!columns || !Array.isArray(columns) || columns.length === 0) {
+      return res.status(400).json({
+        error: '無效的欄位資料'
+      });
+    }
+    
+    if (!rows || !Array.isArray(rows) || rows.length === 0) {
+      return res.status(400).json({
+        error: '無效的資料內容'
+      });
+    }
+    
+    // 檢查重複資料
+    const duplicateResult = await checkDuplicateData(rows, columns);
+    
+    res.json({
+      success: true,
+      data: duplicateResult
+    });
+    
+  } catch (error) {
+    console.error('檢查重複資料錯誤:', error);
+    res.status(500).json({
+      error: '檢查重複資料時發生錯誤',
       details: process.env.NODE_ENV === 'development' ? (error as Error).message : '請稍後再試'
     });
   }

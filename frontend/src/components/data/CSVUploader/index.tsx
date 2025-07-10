@@ -1,12 +1,22 @@
 import React, { useState } from 'react';
-import { CSVUploaderProps, CSVParseResponse } from '../../../shared/types';
+import { CSVUploaderProps, CSVParseResponse, DuplicateCheckResult, DuplicateCheckResponse } from '../../../shared/types';
 import { FILE_UPLOAD_LIMITS, API_ENDPOINTS } from '../../../shared/constants';
 import { apiRequest } from '../../../features/auth';
+import { DuplicateConfirmation } from '../DuplicateConfirmation';
 
 export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [uploadProgress, setUploadProgress] = useState<number>(0);
+  
+  // 重複檢查相關狀態
+  const [duplicateResult, setDuplicateResult] = useState<DuplicateCheckResult | null>(null);
+  const [showDuplicateConfirmation, setShowDuplicateConfirmation] = useState<boolean>(false);
+  const [pendingFileData, setPendingFileData] = useState<{
+    file: File;
+    columns: string[];
+    rows: any[];
+  } | null>(null);
 
   // 驗證檔案格式
   const validateFile = (file: File): string | null => {
@@ -34,10 +44,38 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
     return null;
   };
 
+  // 檢查重複資料
+  const checkDuplicateData = async (columns: string[], rows: any[]): Promise<DuplicateCheckResult | null> => {
+    try {
+      const response = await apiRequest(API_ENDPOINTS.CSV.CHECK_DUPLICATES, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ columns, rows })
+      });
+
+      const result: DuplicateCheckResponse = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || '檢查重複資料失敗');
+      }
+
+      return result.data || null;
+    } catch (error) {
+      console.error('檢查重複資料錯誤:', error);
+      throw error;
+    }
+  };
+
   // 上傳檔案到後端
-  const uploadFileToBackend = async (file: File): Promise<CSVParseResponse> => {
+  const uploadFileToBackend = async (file: File, forceUpload: boolean = false): Promise<CSVParseResponse> => {
     const formData = new FormData();
     formData.append('csvFile', file);
+    
+    if (forceUpload) {
+      formData.append('forceUpload', 'true');
+    }
 
     try {
       const response = await apiRequest(API_ENDPOINTS.CSV.UPLOAD, {
@@ -49,6 +87,10 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
       const result: CSVParseResponse = await response.json();
 
       if (!response.ok) {
+        // 如果是重複資料錯誤（HTTP 409），不拋出異常
+        if (response.status === 409) {
+          return result;
+        }
         throw new Error(result.error || result.details || '上傳失敗');
       }
 
@@ -70,6 +112,9 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
     // 重置狀態
     setError('');
     setUploadProgress(0);
+    setDuplicateResult(null);
+    setShowDuplicateConfirmation(false);
+    setPendingFileData(null);
 
     // 驗證檔案
     const validationError = validateFile(file);
@@ -85,8 +130,28 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
     try {
       setUploadProgress(50);
       
-      // 上傳到後端
-      const result = await uploadFileToBackend(file);
+      // 先嘗試上傳（不強制）
+      const result = await uploadFileToBackend(file, false);
+      
+      // 檢查是否有重複資料
+      if (result.duplicateCheck && result.duplicateCheck.hasDuplicates) {
+        setUploadProgress(0);
+        setIsUploading(false);
+        
+        // 設置重複確認狀態
+        setDuplicateResult(result.duplicateCheck);
+        setShowDuplicateConfirmation(true);
+        setPendingFileData({
+          file,
+          columns: result.duplicateCheck.duplicateRows.length > 0 ? 
+            Object.keys(result.duplicateCheck.duplicateRows[0]) : [],
+          rows: result.duplicateCheck.duplicateRows
+        });
+        
+        // 清空文件輸入
+        event.target.value = '';
+        return;
+      }
       
       setUploadProgress(75);
 
@@ -118,6 +183,61 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
       setIsUploading(false);
       setUploadProgress(0);
     }
+  };
+
+  // 處理重複確認 - 繼續上傳
+  const handleDuplicateConfirm = async () => {
+    if (!pendingFileData) return;
+
+    setShowDuplicateConfirmation(false);
+    setIsUploading(true);
+    setUploadProgress(25);
+
+    try {
+      setUploadProgress(50);
+      
+      // 強制上傳
+      const result = await uploadFileToBackend(pendingFileData.file, true);
+      
+      setUploadProgress(75);
+
+      // 檢查後端回傳的資料
+      if (!result.success || !result.data) {
+        throw new Error('後端回傳資料格式錯誤');
+      }
+
+      const { columns, rows } = result.data;
+      
+      // 驗證回傳的資料
+      if (!columns || !Array.isArray(columns) || columns.length === 0) {
+        throw new Error('無法取得有效的欄位資訊');
+      }
+
+      if (!rows || !Array.isArray(rows) || rows.length === 0) {
+        throw new Error('無法取得有效的資料內容');
+      }
+
+      setUploadProgress(100);
+      
+      // 成功解析，回傳資料給父組件
+      onUpload(rows, columns);
+      
+    } catch (error) {
+      console.error('檔案上傳錯誤:', error);
+      setError(error instanceof Error ? error.message : '檔案上傳失敗');
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+      setPendingFileData(null);
+      setDuplicateResult(null);
+    }
+  };
+
+  // 處理重複確認 - 取消上傳
+  const handleDuplicateCancel = () => {
+    setShowDuplicateConfirmation(false);
+    setPendingFileData(null);
+    setDuplicateResult(null);
   };
 
   return (
@@ -171,6 +291,7 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
             <li>資料筆數：最大 {FILE_UPLOAD_LIMITS.MAX_ROWS.toLocaleString()} 筆</li>
             <li>第一行：必須為欄位名稱</li>
             <li>編碼：UTF-8</li>
+            <li><strong>重複檢查：</strong>系統會自動檢查是否有重複資料</li>
           </ul>
         </div>
 
@@ -181,6 +302,17 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
           </small>
         </div>
       </div>
+
+      {/* 重複確認對話框 */}
+      <DuplicateConfirmation
+        visible={showDuplicateConfirmation}
+        duplicateResult={duplicateResult}
+        columns={pendingFileData?.columns || []}
+        fileName={pendingFileData?.file?.name || ''}
+        onConfirm={handleDuplicateConfirm}
+        onCancel={handleDuplicateCancel}
+        loading={isUploading}
+      />
     </div>
   );
 }; 
