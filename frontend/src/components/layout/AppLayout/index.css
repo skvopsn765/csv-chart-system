@@ -1,0 +1,181 @@
+/* 主要布局 */
+.app-layout {
+  min-height: 100vh;
+}
+
+/* 側邊欄 */
+.app-sider {
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+/* Logo 區域 */
+.app-logo {
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logo-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-icon {
+  font-size: 24px;
+  margin-right: 8px;
+}
+
+.logo-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+}
+
+/* 導航選單 */
+.app-menu {
+  border-right: none;
+  padding: 8px 0;
+}
+
+.app-menu .ant-menu-item {
+  margin: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.app-menu .ant-menu-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.app-menu .ant-menu-item.ant-menu-item-selected {
+  background: #1890ff;
+  color: white;
+}
+
+.app-menu .ant-menu-item.ant-menu-item-selected::after {
+  display: none;
+}
+
+/* 標題欄 */
+.app-header {
+  background: white;
+  padding: 0 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 999;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.collapse-button {
+  font-size: 18px;
+  margin-right: 16px;
+  color: #666;
+  transition: color 0.2s ease;
+}
+
+.collapse-button:hover {
+  color: #1890ff;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+}
+
+.current-page {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.user-info {
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.user-info:hover {
+  background: rgba(24, 144, 255, 0.1);
+}
+
+.username {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+/* 內容區域 */
+.app-content {
+  padding: 24px;
+  background: #f5f5f5;
+  min-height: calc(100vh - 64px);
+}
+
+.content-wrapper {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  min-height: calc(100vh - 112px);
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .app-header {
+    padding: 0 16px;
+  }
+  
+  .app-content {
+    padding: 16px;
+  }
+  
+  .content-wrapper {
+    padding: 16px;
+  }
+  
+  .logo-text {
+    display: none;
+  }
+  
+  .username {
+    display: none;
+  }
+}
+
+/* 滾動條樣式 */
+.app-sider .ant-layout-sider-children {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+.app-sider .ant-layout-sider-children::-webkit-scrollbar {
+  width: 6px;
+}
+
+.app-sider .ant-layout-sider-children::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.app-sider .ant-layout-sider-children::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.app-sider .ant-layout-sider-children::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+} 

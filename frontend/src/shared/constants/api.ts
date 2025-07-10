@@ -16,6 +16,8 @@ export const API_ENDPOINTS = {
     LIST: '/api/datasets',
     CREATE: '/api/datasets',
     DETAIL: '/api/datasets/:id',
+    UPDATE: '/api/datasets/:id',
+    DELETE: '/api/datasets/:id',
     CHECK_DUPLICATES: '/api/datasets/:id/check-duplicates',
     PARTIAL_UPLOAD: '/api/datasets/:id/partial-upload',
     CHECK_COLUMNS: '/api/datasets/check-columns'
