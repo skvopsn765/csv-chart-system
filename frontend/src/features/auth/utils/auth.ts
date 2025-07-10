@@ -50,6 +50,10 @@ export const apiRequest = async (
 ): Promise<Response> => {
   const token = tokenManager.getToken();
   
+  // 設定 API base URL
+  const baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  const fullUrl = url.startsWith('http') ? url : `${baseURL}${url}`;
+  
   // 準備 headers
   const headers: Record<string, string> = {
     ...(token && { 'Authorization': `Bearer ${token}` }),
@@ -61,7 +65,7 @@ export const apiRequest = async (
     headers['Content-Type'] = 'application/json';
   }
 
-  return fetch(url, {
+  return fetch(fullUrl, {
     ...options,
     headers
   });

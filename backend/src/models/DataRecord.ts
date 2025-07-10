@@ -58,11 +58,8 @@ DataRecord.init({
     },
     {
       fields: ['created_at']
-    },
-    {
-      fields: ['dataset_id', 'row_hash'],
-      unique: true
     }
+    // 移除 dataset_id + row_hash 組合索引，允許完全重複的資料
   ]
 });
 

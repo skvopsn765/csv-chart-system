@@ -1,26 +1,61 @@
 import React, { useState } from 'react';
-import { CSVUploaderProps, CSVParseResponse, DuplicateCheckResult, DuplicateCheckResponse } from '../../../shared/types';
+import Papa from 'papaparse';
+import { CSVUploaderProps, DataRow, ColumnsCheckResponse, DatasetCreateResponse, DuplicateCheckResult, DuplicateCheckResponse } from '../../../shared/types';
 import { FILE_UPLOAD_LIMITS, API_ENDPOINTS } from '../../../shared/constants';
 import { apiRequest } from '../../../features/auth';
 import { DuplicateConfirmation } from '../DuplicateConfirmation';
+import { DatasetSelector } from '../DatasetSelector';
+import './index.css';
 
 export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [uploadSuccess, setUploadSuccess] = useState<boolean>(false);
+  const [uploadedCount, setUploadedCount] = useState<number>(0);
+  
+  // CSV 解析相關狀態
+  const [csvData, setCsvData] = useState<{
+    columns: string[];
+    rows: DataRow[];
+    fileName: string;
+  } | null>(null);
+  
+  // 資料集選擇相關狀態
+  const [showDatasetSelector, setShowDatasetSelector] = useState<boolean>(false);
+  const [selectedDatasetId, setSelectedDatasetId] = useState<number | null>(null);
   
   // 重複檢查相關狀態
   const [duplicateResult, setDuplicateResult] = useState<DuplicateCheckResult | null>(null);
   const [showDuplicateConfirmation, setShowDuplicateConfirmation] = useState<boolean>(false);
-  const [pendingFileData, setPendingFileData] = useState<{
-    file: File;
-    columns: string[];
-    rows: any[];
-  } | null>(null);
+
+  // 顯示成功提示
+  const showSuccessMessage = (count: number) => {
+    setUploadedCount(count);
+    setUploadSuccess(true);
+    
+    // 3秒後自動關閉成功提示
+    setTimeout(() => {
+      setUploadSuccess(false);
+      setUploadedCount(0);
+    }, 3000);
+  };
+
+  // 重置所有狀態
+  const resetAllStates = () => {
+    setError('');
+    setUploadProgress(0);
+    setUploadSuccess(false);
+    setUploadedCount(0);
+    setCsvData(null);
+    setShowDatasetSelector(false);
+    setSelectedDatasetId(null);
+    setDuplicateResult(null);
+    setShowDuplicateConfirmation(false);
+  };
 
   // 驗證檔案格式
   const validateFile = (file: File): string | null => {
-    // 檢查檔案副檔名
     const fileName = file.name.toLowerCase();
     const hasValidExtension = FILE_UPLOAD_LIMITS.ALLOWED_EXTENSIONS.some(ext => 
       fileName.endsWith(ext)
@@ -30,12 +65,10 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
       return `請選擇 CSV 檔案（${FILE_UPLOAD_LIMITS.ALLOWED_EXTENSIONS.join(', ')} 副檔名）`;
     }
 
-    // 檢查檔案大小
     if (file.size > FILE_UPLOAD_LIMITS.MAX_FILE_SIZE) {
       return `檔案大小超過限制（最大 ${(FILE_UPLOAD_LIMITS.MAX_FILE_SIZE / 1024 / 1024).toFixed(0)}MB）`;
     }
 
-    // 檢查 MIME 類型（允許空字串，某些瀏覽器可能不提供 MIME 類型）
     const allowedMimeTypes = FILE_UPLOAD_LIMITS.ALLOWED_MIME_TYPES as readonly string[];
     if (file.type !== '' && !allowedMimeTypes.includes(file.type)) {
       return '檔案格式不正確';
@@ -44,63 +77,103 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
     return null;
   };
 
-  // 檢查重複資料
-  const checkDuplicateData = async (columns: string[], rows: any[]): Promise<DuplicateCheckResult | null> => {
-    try {
-      const response = await apiRequest(API_ENDPOINTS.CSV.CHECK_DUPLICATES, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
+  // 解析 CSV 檔案
+  const parseCSVFile = (file: File): Promise<{ columns: string[], rows: DataRow[] }> => {
+    return new Promise((resolve, reject) => {
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          if (results.errors.length > 0) {
+            reject(new Error(`CSV 解析錯誤: ${results.errors.map(err => err.message).join(', ')}`));
+            return;
+          }
+          
+          const data = results.data as DataRow[];
+          if (data.length === 0) {
+            reject(new Error('CSV 檔案中沒有有效資料'));
+            return;
+          }
+          
+          const columns = Object.keys(data[0]);
+          if (columns.length === 0) {
+            reject(new Error('CSV 檔案中沒有有效欄位'));
+            return;
+          }
+          
+          resolve({ columns, rows: data });
         },
-        body: JSON.stringify({ columns, rows })
+        error: (error) => {
+          reject(new Error(`CSV 解析失敗: ${error.message}`));
+        }
       });
-
-      const result: DuplicateCheckResponse = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || '檢查重複資料失敗');
-      }
-
-      return result.data || null;
-    } catch (error) {
-      console.error('檢查重複資料錯誤:', error);
-      throw error;
-    }
+    });
   };
 
-  // 上傳檔案到後端
-  const uploadFileToBackend = async (file: File, forceUpload: boolean = false): Promise<CSVParseResponse> => {
-    const formData = new FormData();
-    formData.append('csvFile', file);
-    
-    if (forceUpload) {
-      formData.append('forceUpload', 'true');
+  // 檢查欄位結構
+  const checkColumnsStructure = async (columns: string[]): Promise<ColumnsCheckResponse> => {
+    const response = await apiRequest(API_ENDPOINTS.DATASETS.CHECK_COLUMNS, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ columns })
+    });
+
+    const result: ColumnsCheckResponse = await response.json();
+    if (!response.ok) {
+      throw new Error(result.error || '檢查欄位結構失敗');
     }
+    return result;
+  };
 
-    try {
-      const response = await apiRequest(API_ENDPOINTS.CSV.UPLOAD, {
-        method: 'POST',
-        body: formData
-        // 不設置 headers，讓 apiRequest 自動處理
-      });
+  // 創建新資料集
+  const createDataset = async (name: string, description: string | undefined, columns: string[]): Promise<DatasetCreateResponse> => {
+    const response = await apiRequest(API_ENDPOINTS.DATASETS.CREATE, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ name, description, columns })
+    });
 
-      const result: CSVParseResponse = await response.json();
+    const result: DatasetCreateResponse = await response.json();
+    if (!response.ok) {
+      throw new Error(result.error || '創建資料集失敗');
+    }
+    return result;
+  };
 
-      if (!response.ok) {
-        // 如果是重複資料錯誤（HTTP 409），不拋出異常
-        if (response.status === 409) {
-          return result;
-        }
-        throw new Error(result.error || result.details || '上傳失敗');
-      }
+  // 檢查重複資料
+  const checkDuplicateData = async (datasetId: number, columns: string[], rows: DataRow[]): Promise<DuplicateCheckResult> => {
+    const response = await apiRequest(API_ENDPOINTS.DATASETS.CHECK_DUPLICATES.replace(':id', datasetId.toString()), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ columns, rows })
+    });
 
-      return result;
-    } catch (error) {
-      // 網路錯誤處理
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        throw new Error('無法連接到伺服器，請檢查網路連線');
-      }
-      throw error;
+    const result: DuplicateCheckResponse = await response.json();
+    if (!response.ok) {
+      throw new Error(result.error || '檢查重複資料失敗');
+    }
+    return result.data!;
+  };
+
+  // 部分上傳資料
+  const partialUploadData = async (datasetId: number, columns: string[], rows: DataRow[]): Promise<void> => {
+    const response = await apiRequest(API_ENDPOINTS.DATASETS.PARTIAL_UPLOAD.replace(':id', datasetId.toString()), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ columns, rows })
+    });
+
+    if (!response.ok) {
+      const result = await response.json();
+      throw new Error(result.error || '上傳資料失敗');
     }
   };
 
@@ -110,11 +183,7 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
     if (!file) return;
 
     // 重置狀態
-    setError('');
-    setUploadProgress(0);
-    setDuplicateResult(null);
-    setShowDuplicateConfirmation(false);
-    setPendingFileData(null);
+    resetAllStates();
 
     // 驗證檔案
     const validationError = validateFile(file);
@@ -123,76 +192,103 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
       return;
     }
 
-    // 開始上傳處理
     setIsUploading(true);
     setUploadProgress(25);
 
     try {
+      // 解析 CSV 檔案
+      const { columns, rows } = await parseCSVFile(file);
       setUploadProgress(50);
-      
-      // 先嘗試上傳（不強制）
-      const result = await uploadFileToBackend(file, false);
-      
-      console.log('上傳結果:', result); // 調試日誌
-      
-      // 檢查是否有重複資料
-      if (result.duplicateCheck && result.duplicateCheck.hasDuplicates) {
-        console.log('發現重複資料:', result.duplicateCheck); // 調試日誌
-        setUploadProgress(0);
-        setIsUploading(false);
-        
-        // 設置重複確認狀態
-        setDuplicateResult(result.duplicateCheck);
-        setShowDuplicateConfirmation(true);
-        setPendingFileData({
-          file,
-          columns: result.duplicateCheck.duplicateRows.length > 0 ? 
-            Object.keys(result.duplicateCheck.duplicateRows[0]) : [],
-          rows: result.duplicateCheck.duplicateRows
-        });
-        
-        console.log('設置重複確認狀態:', {
-          showDuplicateConfirmation: true,
-          duplicateResult: result.duplicateCheck
-        }); // 調試日誌
-        
-        // 清空文件輸入
-        event.target.value = '';
-        return;
-      }
-      
-      // 如果沒有重複資料，檢查是否成功
-      if (!result.success) {
-        console.log('上傳失敗但沒有重複資料:', result); // 調試日誌
-        throw new Error(result.error || '上傳失敗');
-      }
-      
+
+      // 檢查欄位結構
+      const checkResult = await checkColumnsStructure(columns);
       setUploadProgress(75);
 
-      // 檢查後端回傳的資料
-      if (!result.success || !result.data) {
-        throw new Error('後端回傳資料格式錯誤');
-      }
+      // 設置 CSV 資料
+      setCsvData({
+        columns,
+        rows,
+        fileName: file.name
+      });
 
-      const { columns, rows } = result.data;
-      
-      // 驗證回傳的資料
-      if (!columns || !Array.isArray(columns) || columns.length === 0) {
-        throw new Error('無法取得有效的欄位資訊');
-      }
-
-      if (!rows || !Array.isArray(rows) || rows.length === 0) {
-        throw new Error('無法取得有效的資料內容');
+      if (checkResult.data?.hasMatching) {
+        // 如果有匹配的資料集，顯示選擇器
+        setShowDatasetSelector(true);
+      } else {
+        // 如果沒有匹配的資料集，也顯示選擇器讓用戶創建新的
+        setShowDatasetSelector(true);
       }
 
       setUploadProgress(100);
-      
-      // 成功解析，回傳資料給父組件
-      onUpload(rows, columns);
-      
     } catch (error) {
-      console.error('檔案上傳錯誤:', error);
-      setError(error instanceof Error ? error.message : '檔案上傳失敗');
+      console.error('檔案處理錯誤:', error);
+      setError(error instanceof Error ? error.message : '檔案處理失敗');
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+    }
+  };
+
+  // 處理資料集選擇
+  const handleDatasetSelect = async (datasetId: number) => {
+    if (!csvData) return;
+
+    setShowDatasetSelector(false);
+    setSelectedDatasetId(datasetId);
+    setIsUploading(true);
+    setUploadProgress(25);
+
+    try {
+      // 檢查重複資料
+      const duplicateResult = await checkDuplicateData(datasetId, csvData.columns, csvData.rows);
+      setUploadProgress(50);
+
+      if (duplicateResult.hasDuplicates) {
+        // 如果有重複資料，顯示確認對話框
+        setDuplicateResult(duplicateResult);
+        setShowDuplicateConfirmation(true);
+      } else {
+        // 如果沒有重複資料，直接上傳
+        await partialUploadData(datasetId, csvData.columns, csvData.rows);
+        setUploadProgress(100);
+        onUpload(csvData.rows, csvData.columns);
+        showSuccessMessage(csvData.rows.length);
+      }
+    } catch (error) {
+      console.error('資料集處理錯誤:', error);
+      setError(error instanceof Error ? error.message : '資料集處理失敗');
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+    }
+  };
+
+  // 處理創建新資料集
+  const handleCreateDataset = async (name: string, description?: string) => {
+    if (!csvData) return;
+
+    setShowDatasetSelector(false);
+    setIsUploading(true);
+    setUploadProgress(25);
+
+    try {
+      // 創建新資料集
+      const createResult = await createDataset(name, description, csvData.columns);
+      setUploadProgress(50);
+
+      if (createResult.data) {
+        const datasetId = createResult.data.id;
+        setSelectedDatasetId(datasetId);
+
+        // 新創建的資料集不會有重複資料，直接上傳
+        await partialUploadData(datasetId, csvData.columns, csvData.rows);
+        setUploadProgress(100);
+        onUpload(csvData.rows, csvData.columns);
+        showSuccessMessage(csvData.rows.length);
+      }
+    } catch (error) {
+      console.error('創建資料集錯誤:', error);
+      setError(error instanceof Error ? error.message : '創建資料集失敗');
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
@@ -200,64 +296,44 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
   };
 
   // 處理重複確認 - 部分上傳
-  const handleDuplicateConfirm = async (selectedRows: any[]) => {
-    if (!pendingFileData) return;
+  const handleDuplicateConfirm = async (selectedRows: DataRow[]) => {
+    if (!csvData || !selectedDatasetId) return;
 
     setShowDuplicateConfirmation(false);
     setIsUploading(true);
     setUploadProgress(25);
 
     try {
-      setUploadProgress(50);
-      
-      // 如果沒有選中任何行，則取消上傳
       if (selectedRows.length === 0) {
         setError('請至少選擇一筆資料進行上傳');
         return;
       }
-      
-      // 強制上傳選中的資料
-      const result = await uploadFileToBackend(pendingFileData.file, true);
-      
-      setUploadProgress(75);
 
-      // 檢查後端回傳的資料
-      if (!result.success || !result.data) {
-        throw new Error('後端回傳資料格式錯誤');
-      }
-
-      const { columns, rows } = result.data;
-      
-      // 驗證回傳的資料
-      if (!columns || !Array.isArray(columns) || columns.length === 0) {
-        throw new Error('無法取得有效的欄位資訊');
-      }
-
-      if (!rows || !Array.isArray(rows) || rows.length === 0) {
-        throw new Error('無法取得有效的資料內容');
-      }
-
+      // 上傳選中的資料
+      await partialUploadData(selectedDatasetId, csvData.columns, selectedRows);
       setUploadProgress(100);
-      
-      // 成功解析，回傳資料給父組件
-      onUpload(rows, columns);
-      
+      onUpload(selectedRows, csvData.columns);
+      showSuccessMessage(selectedRows.length);
     } catch (error) {
-      console.error('檔案上傳錯誤:', error);
-      setError(error instanceof Error ? error.message : '檔案上傳失敗');
+      console.error('部分上傳錯誤:', error);
+      setError(error instanceof Error ? error.message : '部分上傳失敗');
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
-      setPendingFileData(null);
-      setDuplicateResult(null);
     }
   };
 
   // 處理重複確認 - 取消上傳
   const handleDuplicateCancel = () => {
     setShowDuplicateConfirmation(false);
-    setPendingFileData(null);
     setDuplicateResult(null);
+  };
+
+  // 處理資料集選擇取消
+  const handleDatasetCancel = () => {
+    setShowDatasetSelector(false);
+    setCsvData(null);
+    setSelectedDatasetId(null);
   };
 
   return (
@@ -278,7 +354,7 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
             id="csv-file-input"
           />
           <label htmlFor="csv-file-input" className="file-input-label">
-            {isUploading ? '上傳中...' : '選擇 CSV 檔案'}
+            {isUploading ? '處理中...' : '選擇 CSV 檔案'}
           </label>
         </div>
 
@@ -302,6 +378,13 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
           </div>
         )}
 
+        {/* 成功提示 */}
+        {uploadSuccess && (
+          <div className="success-message">
+            成功上傳 {uploadedCount} 筆資料！
+          </div>
+        )}
+
         {/* 檔案格式說明 */}
         <div className="file-info">
           <h4>檔案格式要求：</h4>
@@ -311,7 +394,7 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
             <li>資料筆數：最大 {FILE_UPLOAD_LIMITS.MAX_ROWS.toLocaleString()} 筆</li>
             <li>第一行：必須為欄位名稱</li>
             <li>編碼：UTF-8</li>
-            <li><strong>重複檢查：</strong>系統會自動檢查是否有重複資料</li>
+            <li><strong>智慧資料集：</strong>系統會自動檢查欄位結構並分類資料</li>
           </ul>
         </div>
 
@@ -323,12 +406,22 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
         </div>
       </div>
 
+      {/* 資料集選擇對話框 */}
+      <DatasetSelector
+        visible={showDatasetSelector}
+        columns={csvData?.columns || []}
+        onSelect={handleDatasetSelect}
+        onCancel={handleDatasetCancel}
+        onCreateNew={handleCreateDataset}
+        loading={isUploading}
+      />
+
       {/* 重複確認對話框 */}
       <DuplicateConfirmation
         visible={showDuplicateConfirmation}
         duplicateResult={duplicateResult}
-        columns={pendingFileData?.columns || []}
-        fileName={pendingFileData?.file?.name || ''}
+        columns={csvData?.columns || []}
+        fileName={csvData?.fileName || ''}
         onConfirm={handleDuplicateConfirm}
         onCancel={handleDuplicateCancel}
         loading={isUploading}

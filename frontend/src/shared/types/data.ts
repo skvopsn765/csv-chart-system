@@ -90,6 +90,25 @@ export interface DatasetDetailResponse {
   error?: string;
 }
 
+// 資料集創建回應
+export interface DatasetCreateResponse {
+  success: boolean;
+  data?: Dataset;
+  message?: string;
+  error?: string;
+}
+
+// 欄位檢查回應
+export interface ColumnsCheckResponse {
+  success: boolean;
+  data?: {
+    hasMatching: boolean;
+    matchingDatasets: Dataset[];
+    columnsHash: string;
+  };
+  error?: string;
+}
+
 export interface UploadDetailResponse {
   success: boolean;
   data?: {

@@ -337,4 +337,108 @@ router.post('/datasets/:id/partial-upload', authenticateToken, async (req: Reque
   }
 });
 
+// 創建新資料集 API
+router.post('/datasets', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.id;
+    const { name, description, columns }: { name: string, description?: string, columns: string[] } = req.body;
+    
+    // 驗證輸入
+    if (!name || !name.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: '資料集名稱不能為空'
+      });
+    }
+    
+    if (!columns || !Array.isArray(columns) || columns.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: '欄位資訊不能為空'
+      });
+    }
+    
+    // 檢查是否已存在相同名稱的資料集
+    const existingDataset = await Dataset.findOne({
+      where: {
+        name: name.trim(),
+        userId: userId
+      }
+    });
+    
+    if (existingDataset) {
+      return res.status(409).json({
+        success: false,
+        error: '資料集名稱已存在'
+      });
+    }
+    
+    // 創建新資料集
+    const dataset = await Dataset.create({
+      name: name.trim(),
+      description: description?.trim() || undefined,
+      columnsInfo: JSON.stringify(columns),
+      userId: userId
+    });
+    
+    res.json({
+      success: true,
+      message: '資料集創建成功',
+      data: dataset
+    });
+  } catch (error) {
+    console.error('創建資料集錯誤:', error);
+    res.status(500).json({
+      success: false,
+      error: '伺服器錯誤'
+    });
+  }
+});
+
+// 檢查欄位結構是否已存在
+router.post('/datasets/check-columns', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.id;
+    const { columns }: { columns: string[] } = req.body;
+    
+    if (!columns || !Array.isArray(columns) || columns.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: '欄位資訊不能為空'
+      });
+    }
+    
+    // 查找具有相同欄位結構的資料集
+    const datasets = await Dataset.findAll({
+      where: {
+        userId: userId
+      }
+    });
+    
+    const matchingDatasets = datasets.filter(dataset => {
+      try {
+        const datasetColumns = JSON.parse(dataset.columnsInfo);
+        return JSON.stringify(columns.sort()) === JSON.stringify(datasetColumns.sort());
+      } catch {
+        return false;
+      }
+    });
+    
+    res.json({
+      success: true,
+      data: {
+        hasMatching: matchingDatasets.length > 0,
+        matchingDatasets: matchingDatasets,
+        columnsHash: JSON.stringify(columns.sort())
+      }
+    });
+  } catch (error) {
+    console.error('檢查欄位結構錯誤:', error);
+    res.status(500).json({
+      success: false,
+      error: '伺服器錯誤'
+    });
+  }
+});
+
 export default router; 

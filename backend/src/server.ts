@@ -18,6 +18,9 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
+// 設定 trust proxy（解決 rate limit 錯誤）
+app.set('trust proxy', NODE_ENV === 'production' ? 1 : false);
+
 // 安全性中間件
 app.use(helmet());
 

@@ -1,0 +1,217 @@
+/* CSV上傳器樣式 */
+.csv-uploader {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  position: relative;
+}
+
+.uploader-content {
+  background: #ffffff;
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  padding: 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.uploader-content h3 {
+  color: #1890ff;
+  margin-bottom: 8px;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.uploader-description {
+  color: #666;
+  margin-bottom: 32px;
+  font-size: 16px;
+}
+
+/* 檔案輸入區域 */
+.file-input-container {
+  margin-bottom: 20px;
+}
+
+.file-input {
+  display: none;
+}
+
+.file-input-label {
+  display: inline-block;
+  padding: 12px 24px;
+  background: #1890ff;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 16px;
+  font-weight: 500;
+  border: none;
+  text-align: center;
+  min-width: 200px;
+}
+
+.file-input-label:hover {
+  background: #40a9ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+}
+
+.file-input-label:active {
+  transform: translateY(0);
+}
+
+/* 進度條 */
+.upload-progress {
+  margin: 20px 0;
+  padding: 16px;
+  background: #f5f5f5;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #1890ff, #40a9ff);
+  transition: width 0.3s ease;
+  border-radius: 4px;
+}
+
+.progress-text {
+  font-size: 14px;
+  color: #666;
+  text-align: center;
+  display: block;
+}
+
+/* 錯誤訊息 */
+.error-message {
+  background: #fff2f0;
+  border: 1px solid #ffccc7;
+  border-radius: 6px;
+  padding: 16px;
+  margin: 20px 0;
+  color: #ff4d4f;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* 成功提示 - 全版面覆蓋 */
+.success-message {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  font-size: 24px;
+  font-weight: 600;
+  color: white;
+  animation: successFadeIn 0.3s ease-in-out;
+}
+
+.success-message::before {
+  content: '✅';
+  margin-right: 16px;
+  font-size: 32px;
+}
+
+@keyframes successFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 檔案格式說明 */
+.file-info {
+  background: #f6ffed;
+  border: 1px solid #b7eb8f;
+  border-radius: 6px;
+  padding: 16px;
+  margin: 20px 0;
+}
+
+.file-info h4 {
+  color: #52c41a;
+  margin-bottom: 12px;
+  font-size: 16px;
+}
+
+.file-info ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.file-info li {
+  margin-bottom: 8px;
+  color: #666;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.file-info strong {
+  color: #1890ff;
+  font-weight: 600;
+}
+
+/* 伺服器狀態 */
+.server-status {
+  margin-top: 20px;
+  padding: 12px;
+  background: #f6ffed;
+  border: 1px solid #b7eb8f;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.server-status small {
+  color: #52c41a;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .csv-uploader {
+    padding: 16px;
+  }
+  
+  .uploader-content {
+    padding: 24px;
+  }
+  
+  .uploader-content h3 {
+    font-size: 20px;
+  }
+  
+  .file-input-label {
+    padding: 10px 20px;
+    font-size: 14px;
+    min-width: 150px;
+  }
+  
+  .success-message {
+    font-size: 20px;
+    padding: 20px;
+    text-align: center;
+  }
+} 

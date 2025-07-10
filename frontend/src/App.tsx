@@ -3,7 +3,7 @@ import { ConfigProvider, theme } from 'antd';
 import { CSVUploader, FieldSelector, ChartDisplay, DataTable, AdminLayout } from './components';
 import { ProtectedRoute, AuthProvider, useAuth } from './features/auth';
 import { CHART_TYPES, API_ENDPOINTS } from './shared/constants';
-import { ChartType, DataRow, UploadsListResponse, UploadDetailResponse } from './shared/types';
+import { ChartType, DataRow, DatasetsListResponse, DatasetDetailResponse } from './shared/types';
 import { apiRequest } from './features/auth';
 import zhTW from 'antd/locale/zh_TW';
 import './App.css';
@@ -22,51 +22,62 @@ const AppContent: React.FC = () => {
   // 取得認證上下文
   const { user, isAuthenticated } = useAuth();
 
-  // 載入使用者最近的上傳資料
+  // 載入使用者最近的資料集資料
   const loadUserLatestData = async () => {
     if (!isAuthenticated) return;
     
     setIsLoadingData(true);
     try {
-      // 獲取使用者的上傳記錄列表
-      const uploadsResponse = await apiRequest(API_ENDPOINTS.CSV.UPLOADS, {
+      // 獲取使用者的資料集列表
+      const datasetsResponse = await apiRequest(API_ENDPOINTS.DATASETS.LIST, {
         method: 'GET'
       });
 
-      if (!uploadsResponse.ok) {
-        throw new Error('無法載入上傳記錄');
+      if (!datasetsResponse.ok) {
+        throw new Error('無法載入資料集列表');
       }
 
-      const uploadsData: UploadsListResponse = await uploadsResponse.json();
+      const datasetsData: DatasetsListResponse = await datasetsResponse.json();
       
-      if (uploadsData.success && uploadsData.data && uploadsData.data.length > 0) {
-        // 取得最近的上傳記錄
-        const latestUpload = uploadsData.data[0];
+      if (datasetsData.success && datasetsData.data && datasetsData.data.length > 0) {
+        // 取得最近的資料集
+        const latestDataset = datasetsData.data[0];
         
-        // 載入該記錄的詳細資料
-        const detailResponse = await apiRequest(`${API_ENDPOINTS.CSV.UPLOADS}/${latestUpload.id}`, {
+        // 載入該資料集的詳細資料
+        const detailResponse = await apiRequest(API_ENDPOINTS.DATASETS.DETAIL.replace(':id', latestDataset.id.toString()), {
           method: 'GET'
         });
 
         if (!detailResponse.ok) {
-          throw new Error('無法載入上傳資料詳情');
+          throw new Error('無法載入資料集詳情');
         }
 
-        const detailData: UploadDetailResponse = await detailResponse.json();
+        const detailData: DatasetDetailResponse = await detailResponse.json();
         
         if (detailData.success && detailData.data) {
+          // 將 DataRecord 轉換為 DataRow 格式
+          const rows = detailData.data.records.map(record => JSON.parse(record.dataJson));
+          
+          // 添加調試日誌
+          console.log('🔍 從後端獲取的資料：');
+          console.log('資料集資訊:', detailData.data.dataset);
+          console.log('記錄數量:', detailData.data.records.length);
+          console.log('解析後的資料行數:', rows.length);
+          console.log('欄位:', detailData.data.columns);
+          console.log('前3筆資料:', rows.slice(0, 3));
+          
           // 載入資料到狀態
-          setCsvData(detailData.data.rows);
+          setCsvData(rows);
           setColumns(detailData.data.columns);
-          setCurrentUploadId(detailData.data.id);
-          console.log(`✅ 已載入使用者最近的資料: ${detailData.data.fileName}`);
+          setCurrentUploadId(detailData.data.dataset.id);
+          console.log(`✅ 已載入使用者最近的資料集: ${detailData.data.dataset.name}`);
         }
       } else {
         // 沒有歷史資料，清空狀態
         setCsvData(null);
         setColumns([]);
         setCurrentUploadId(null);
-        console.log('ℹ️ 使用者尚未上傳任何資料');
+        console.log('ℹ️ 使用者尚未創建任何資料集');
       }
     } catch (error) {
       console.error('載入使用者資料失敗:', error);
@@ -94,6 +105,11 @@ const AppContent: React.FC = () => {
     // 重置選擇的欄位
     setSelectedXAxis('');
     setSelectedYAxis([]);
+    
+    // 重新載入使用者最近的資料以顯示完整的資料集
+    setTimeout(() => {
+      loadUserLatestData();
+    }, 500); // 給後端一點時間處理完成
   };
 
   // 處理 X 軸欄位選擇
@@ -140,7 +156,7 @@ const AppContent: React.FC = () => {
                 {currentUploadId && (
                   <div className="stat-card">
                     <h3>載入來源</h3>
-                    <p>歷史記錄 #{currentUploadId}</p>
+                    <p>資料集 #{currentUploadId}</p>
                   </div>
                 )}
               </div>
