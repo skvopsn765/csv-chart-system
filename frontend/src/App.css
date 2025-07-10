@@ -1,0 +1,400 @@
+/* 全局樣式 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f5f5f5;
+}
+
+/* 主要應用程式容器 */
+.App {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.App-header {
+  background-color: #282c34;
+  color: white;
+  text-align: center;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.App-header h1 {
+  font-size: 2rem;
+  margin: 0;
+}
+
+.App-main {
+  flex: 1;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* 區塊樣式 */
+section {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 24px;
+  padding: 24px;
+}
+
+/* CSV 上傳元件樣式 */
+.csv-uploader {
+  text-align: center;
+}
+
+.uploader-content h3 {
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.uploader-description {
+  color: #666;
+  margin-bottom: 24px;
+}
+
+.file-input-container {
+  margin-bottom: 20px;
+}
+
+.file-input {
+  display: none;
+}
+
+.file-input-label {
+  display: inline-block;
+  padding: 12px 24px;
+  background-color: #4CAF50;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  font-size: 16px;
+}
+
+.file-input-label:hover {
+  background-color: #45a049;
+}
+
+.file-input:disabled + .file-input-label {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.error-message {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 12px;
+  border-radius: 4px;
+  margin: 16px 0;
+  border-left: 4px solid #f44336;
+}
+
+.file-info {
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  padding: 16px;
+  margin-top: 16px;
+  text-align: left;
+}
+
+.file-info h4 {
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.file-info ul {
+  list-style-type: disc;
+  padding-left: 20px;
+}
+
+.file-info li {
+  margin-bottom: 4px;
+  color: #666;
+}
+
+/* 上傳進度條樣式 */
+.upload-progress {
+  margin: 16px 0;
+  text-align: center;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background-color: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: #4CAF50;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+/* 伺服器狀態顯示 */
+.server-status {
+  margin-top: 16px;
+  padding: 8px;
+  background-color: #e8f5e8;
+  border-radius: 4px;
+  border: 1px solid #c8e6c9;
+}
+
+.server-status small {
+  color: #2e7d32;
+  font-size: 12px;
+}
+
+/* 欄位選擇器樣式 */
+.field-selector h3 {
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.selector-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.x-axis-selector,
+.y-axis-selector {
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 16px;
+}
+
+.x-axis-selector h4,
+.y-axis-selector h4 {
+  color: #333;
+  margin-bottom: 12px;
+  font-size: 1.1rem;
+}
+
+.field-options {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.radio-option,
+.checkbox-option {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  padding: 4px;
+}
+
+.radio-option input[type="radio"],
+.checkbox-option input[type="checkbox"] {
+  margin-right: 8px;
+}
+
+.radio-option label,
+.checkbox-option label {
+  flex: 1;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 3px;
+  transition: background-color 0.2s;
+}
+
+.radio-option label:hover,
+.checkbox-option label:hover {
+  background-color: #f0f0f0;
+}
+
+.field-type {
+  color: #666;
+  font-size: 0.9em;
+  margin-left: 4px;
+}
+
+.no-numeric-fields {
+  color: #666;
+  font-style: italic;
+}
+
+.selection-status {
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.status-info {
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.ready-indicator {
+  color: #4CAF50;
+  font-weight: bold;
+}
+
+/* 圖表顯示樣式 */
+.chart-display {
+  padding: 0;
+}
+
+.chart-header {
+  padding: 16px;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 16px;
+}
+
+.chart-header h3 {
+  color: #333;
+  margin: 0;
+}
+
+.chart-info {
+  color: #666;
+  font-size: 0.9rem;
+  font-weight: normal;
+  margin-left: 8px;
+}
+
+.chart-container {
+  padding: 16px;
+  background-color: #fafafa;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.chart-placeholder {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+.chart-stats {
+  display: flex;
+  justify-content: space-around;
+  padding: 16px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+.stats-item {
+  text-align: center;
+  color: #333;
+}
+
+/* 圖表控制按鈕樣式 */
+.chart-section {
+  position: relative;
+}
+
+.chart-controls {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+}
+
+.chart-type-btn {
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.chart-type-btn:hover {
+  background-color: #1976D2;
+}
+
+.chart-type-btn.active {
+  background-color: #4CAF50;
+}
+
+/* 自定義 Tooltip 樣式 */
+.custom-tooltip {
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tooltip-label {
+  font-weight: bold;
+  margin-bottom: 4px;
+  color: #333;
+}
+
+.tooltip-item {
+  margin: 2px 0;
+  font-size: 14px;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .App-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .App-main {
+    padding: 16px;
+  }
+  
+  .selector-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .chart-stats {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .chart-controls {
+    position: static;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+}
+
+/* 滾動條樣式 */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+} 
