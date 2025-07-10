@@ -11,41 +11,10 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts';
+import { ChartDisplayProps, ChartDataPoint, ChartTooltipProps } from '../../../shared/types';
+import { CHART_TYPES, DEFAULT_CHART_COLORS, CHART_DIMENSIONS, CHART_CONFIG } from '../../../shared/constants';
 
-// 圖表類型常數
-const CHART_TYPES = {
-  LINE: 'line',
-  BAR: 'bar'
-} as const;
-
-// 預設顏色調色盤
-const DEFAULT_COLORS = [
-  '#8884d8', '#82ca9d', '#ffc658', '#ff7c7c', '#8dd1e1',
-  '#d084d0', '#ffb347', '#87ceeb', '#dda0dd', '#98fb98'
-];
-
-interface ChartDisplayProps {
-  data: { [key: string]: string | number }[] | null;
-  xAxis: string;
-  yAxis: string[];
-  chartType: 'line' | 'bar';
-}
-
-interface ChartDataPoint {
-  [key: string]: string | number;
-}
-
-interface TooltipProps {
-  active?: boolean;
-  payload?: Array<{
-    dataKey: string;
-    value: string | number;
-    color: string;
-  }>;
-  label?: string;
-}
-
-const ChartDisplay: React.FC<ChartDisplayProps> = ({ data, xAxis, yAxis, chartType }) => {
+export const ChartDisplay: React.FC<ChartDisplayProps> = ({ data, xAxis, yAxis, chartType }) => {
   
   // 處理圖表資料
   const chartData = useMemo((): ChartDataPoint[] => {
@@ -72,7 +41,7 @@ const ChartDisplay: React.FC<ChartDisplayProps> = ({ data, xAxis, yAxis, chartTy
   const hasValidData = chartData.length > 0;
 
   // 自訂 Tooltip 格式
-  const CustomTooltip: React.FC<TooltipProps> = ({ active, payload, label }) => {
+  const CustomTooltip: React.FC<ChartTooltipProps> = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
         <div className="custom-tooltip">
@@ -92,22 +61,17 @@ const ChartDisplay: React.FC<ChartDisplayProps> = ({ data, xAxis, yAxis, chartTy
   const renderLineChart = (): React.ReactElement => (
     <LineChart
       data={chartData}
-      margin={{
-        top: 20,
-        right: 30,
-        left: 20,
-        bottom: 20,
-      }}
+      margin={CHART_DIMENSIONS.MARGIN}
     >
-      <CartesianGrid strokeDasharray="3 3" />
+      <CartesianGrid strokeDasharray={CHART_CONFIG.GRID_STROKE_DASH} />
       <XAxis 
         dataKey={xAxis}
-        angle={-45}
+        angle={CHART_CONFIG.X_AXIS_ANGLE}
         textAnchor="end"
-        height={80}
-        fontSize={12}
+        height={CHART_CONFIG.X_AXIS_HEIGHT}
+        fontSize={CHART_CONFIG.FONT_SIZE}
       />
-      <YAxis fontSize={12} />
+      <YAxis fontSize={CHART_CONFIG.FONT_SIZE} />
       <Tooltip content={<CustomTooltip />} />
       <Legend />
       {yAxis.map((yField, index) => (
@@ -115,10 +79,10 @@ const ChartDisplay: React.FC<ChartDisplayProps> = ({ data, xAxis, yAxis, chartTy
           key={yField}
           type="monotone"
           dataKey={yField}
-          stroke={DEFAULT_COLORS[index % DEFAULT_COLORS.length]}
-          strokeWidth={2}
-          dot={{ r: 4 }}
-          activeDot={{ r: 6 }}
+          stroke={DEFAULT_CHART_COLORS[index % DEFAULT_CHART_COLORS.length]}
+          strokeWidth={CHART_CONFIG.STROKE_WIDTH}
+          dot={{ r: CHART_CONFIG.DOT_RADIUS }}
+          activeDot={{ r: CHART_CONFIG.ACTIVE_DOT_RADIUS }}
         />
       ))}
     </LineChart>
@@ -128,29 +92,24 @@ const ChartDisplay: React.FC<ChartDisplayProps> = ({ data, xAxis, yAxis, chartTy
   const renderBarChart = (): React.ReactElement => (
     <BarChart
       data={chartData}
-      margin={{
-        top: 20,
-        right: 30,
-        left: 20,
-        bottom: 20,
-      }}
+      margin={CHART_DIMENSIONS.MARGIN}
     >
-      <CartesianGrid strokeDasharray="3 3" />
+      <CartesianGrid strokeDasharray={CHART_CONFIG.GRID_STROKE_DASH} />
       <XAxis 
         dataKey={xAxis}
-        angle={-45}
+        angle={CHART_CONFIG.X_AXIS_ANGLE}
         textAnchor="end"
-        height={80}
-        fontSize={12}
+        height={CHART_CONFIG.X_AXIS_HEIGHT}
+        fontSize={CHART_CONFIG.FONT_SIZE}
       />
-      <YAxis fontSize={12} />
+      <YAxis fontSize={CHART_CONFIG.FONT_SIZE} />
       <Tooltip content={<CustomTooltip />} />
       <Legend />
       {yAxis.map((yField, index) => (
         <Bar
           key={yField}
           dataKey={yField}
-          fill={DEFAULT_COLORS[index % DEFAULT_COLORS.length]}
+          fill={DEFAULT_CHART_COLORS[index % DEFAULT_CHART_COLORS.length]}
         />
       ))}
     </BarChart>
@@ -179,7 +138,7 @@ const ChartDisplay: React.FC<ChartDisplayProps> = ({ data, xAxis, yAxis, chartTy
       </div>
       
       <div className="chart-container">
-        <ResponsiveContainer width="100%" height={400}>
+        <ResponsiveContainer width="100%" height={CHART_DIMENSIONS.DEFAULT_HEIGHT}>
           {chartType === CHART_TYPES.LINE ? renderLineChart() : renderBarChart()}
         </ResponsiveContainer>
       </div>
@@ -197,6 +156,4 @@ const ChartDisplay: React.FC<ChartDisplayProps> = ({ data, xAxis, yAxis, chartTy
       </div>
     </div>
   );
-};
-
-export default ChartDisplay; 
+}; 

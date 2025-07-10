@@ -1,26 +1,9 @@
 import React, { useState } from 'react';
-import { apiRequest } from '../utils/auth';
+import { CSVUploaderProps, CSVParseResponse } from '../../../shared/types';
+import { FILE_UPLOAD_LIMITS, API_ENDPOINTS } from '../../../shared/constants';
+import { apiRequest } from '../../../features/auth';
 
-// 最大檔案大小常數 (10MB)
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
-// 最大資料筆數常數
-const MAX_ROWS = 5000;
-
-interface CSVUploaderProps {
-  onUpload: (rows: { [key: string]: string | number }[], columns: string[]) => void;
-}
-
-interface BackendResponse {
-  success: boolean;
-  data?: {
-    columns: string[];
-    rows: { [key: string]: string | number }[];
-  };
-  error?: string;
-  details?: string;
-}
-
-const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
+export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [uploadProgress, setUploadProgress] = useState<number>(0);
@@ -29,18 +12,21 @@ const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
   const validateFile = (file: File): string | null => {
     // 檢查檔案副檔名
     const fileName = file.name.toLowerCase();
-    if (!fileName.endsWith('.csv')) {
-      return '請選擇 CSV 檔案（.csv 副檔名）';
+    const hasValidExtension = FILE_UPLOAD_LIMITS.ALLOWED_EXTENSIONS.some(ext => 
+      fileName.endsWith(ext)
+    );
+    
+    if (!hasValidExtension) {
+      return `請選擇 CSV 檔案（${FILE_UPLOAD_LIMITS.ALLOWED_EXTENSIONS.join(', ')} 副檔名）`;
     }
 
     // 檢查檔案大小
-    if (file.size > MAX_FILE_SIZE) {
-      return '檔案大小超過限制（最大 10MB）';
+    if (file.size > FILE_UPLOAD_LIMITS.MAX_FILE_SIZE) {
+      return `檔案大小超過限制（最大 ${(FILE_UPLOAD_LIMITS.MAX_FILE_SIZE / 1024 / 1024).toFixed(0)}MB）`;
     }
 
     // 檢查 MIME 類型
-    const validMimeTypes = ['text/csv', 'application/vnd.ms-excel', 'text/plain'];
-    if (!validMimeTypes.includes(file.type) && file.type !== '') {
+    if (!FILE_UPLOAD_LIMITS.ALLOWED_MIME_TYPES.includes(file.type as any) && file.type !== '') {
       return '檔案格式不正確';
     }
 
@@ -48,18 +34,18 @@ const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
   };
 
   // 上傳檔案到後端
-  const uploadFileToBackend = async (file: File): Promise<BackendResponse> => {
+  const uploadFileToBackend = async (file: File): Promise<CSVParseResponse> => {
     const formData = new FormData();
     formData.append('csvFile', file);
 
     try {
-      const response = await apiRequest('/api/upload-csv', {
+      const response = await apiRequest(API_ENDPOINTS.CSV.UPLOAD, {
         method: 'POST',
         body: formData
         // 不設置 headers，讓 apiRequest 自動處理
       });
 
-      const result: BackendResponse = await response.json();
+      const result: CSVParseResponse = await response.json();
 
       if (!response.ok) {
         throw new Error(result.error || result.details || '上傳失敗');
@@ -179,9 +165,9 @@ const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
         <div className="file-info">
           <h4>檔案格式要求：</h4>
           <ul>
-            <li>檔案格式：.csv</li>
-            <li>檔案大小：最大 10MB</li>
-            <li>資料筆數：最大 {MAX_ROWS.toLocaleString()} 筆</li>
+            <li>檔案格式：{FILE_UPLOAD_LIMITS.ALLOWED_EXTENSIONS.join(', ')}</li>
+            <li>檔案大小：最大 {(FILE_UPLOAD_LIMITS.MAX_FILE_SIZE / 1024 / 1024).toFixed(0)}MB</li>
+            <li>資料筆數：最大 {FILE_UPLOAD_LIMITS.MAX_ROWS.toLocaleString()} 筆</li>
             <li>第一行：必須為欄位名稱</li>
             <li>編碼：UTF-8</li>
           </ul>
@@ -196,6 +182,4 @@ const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
       </div>
     </div>
   );
-};
-
-export default CSVUploader; 
+}; 

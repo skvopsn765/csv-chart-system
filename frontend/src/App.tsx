@@ -1,35 +1,20 @@
 import React, { useState } from 'react';
-import CSVUploader from './components/CSVUploader';
-import FieldSelector from './components/FieldSelector';
-import ChartDisplay from './components/ChartDisplay';
-import DataTable from './components/DataTable';
-import { TabPanel, Tab } from './components/TabPanel';
-import UserInfo from './components/UserInfo';
-import ProtectedRoute from './components/ProtectedRoute';
-import { AuthProvider } from './contexts/AuthContext';
-import { ChartType, CSVData } from './types';
+import { CSVUploader, FieldSelector, ChartDisplay, DataTable, TabPanel, Tab, UserInfo } from './components';
+import { ProtectedRoute, AuthProvider } from './features/auth';
+import { CHART_TYPES } from './shared/constants';
+import { ChartType, DataRow } from './shared/types';
 import './App.css';
-
-// 圖表類型常數
-const CHART_TYPES: { [key: string]: ChartType } = {
-  LINE: 'line',
-  BAR: 'bar'
-};
-
-interface CSVDataStructure {
-  [key: string]: string | number;
-}
 
 const AppContent: React.FC = () => {
   // 主要狀態管理
-  const [csvData, setCsvData] = useState<CSVDataStructure[] | null>(null); // CSV 解析後的資料
+  const [csvData, setCsvData] = useState<DataRow[] | null>(null); // CSV 解析後的資料
   const [columns, setColumns] = useState<string[]>([]); // 欄位名稱陣列
   const [selectedXAxis, setSelectedXAxis] = useState<string>(''); // 選擇的 X 軸欄位
   const [selectedYAxis, setSelectedYAxis] = useState<string[]>([]); // 選擇的 Y 軸欄位陣列
   const [chartType, setChartType] = useState<ChartType>(CHART_TYPES.LINE); // 圖表類型
 
   // 處理 CSV 上傳成功
-  const handleCSVUpload = (data: CSVDataStructure[], columnsData: string[]): void => {
+  const handleCSVUpload = (data: DataRow[], columnsData: string[]): void => {
     setCsvData(data);
     setColumns(columnsData);
     // 重置選擇的欄位

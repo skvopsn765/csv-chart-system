@@ -1,44 +1,45 @@
+// 認證工具函數
+
+import { STORAGE_KEYS, API_ENDPOINTS } from '../../../shared/constants';
+import { User } from '../types/auth';
+
 // Token 管理工具
-
-const TOKEN_KEY = 'csv_chart_token';
-const USER_KEY = 'csv_chart_user';
-
 export const tokenManager = {
   // 儲存 token
   setToken: (token: string): void => {
-    localStorage.setItem(TOKEN_KEY, token);
+    localStorage.setItem(STORAGE_KEYS.TOKEN, token);
   },
 
   // 獲取 token
   getToken: (): string | null => {
-    return localStorage.getItem(TOKEN_KEY);
+    return localStorage.getItem(STORAGE_KEYS.TOKEN);
   },
 
   // 移除 token
   removeToken: (): void => {
-    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(STORAGE_KEYS.TOKEN);
   },
 
   // 儲存用戶信息
-  setUser: (user: any): void => {
-    localStorage.setItem(USER_KEY, JSON.stringify(user));
+  setUser: (user: User): void => {
+    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
   },
 
   // 獲取用戶信息
-  getUser: (): any | null => {
-    const userStr = localStorage.getItem(USER_KEY);
+  getUser: (): User | null => {
+    const userStr = localStorage.getItem(STORAGE_KEYS.USER);
     return userStr ? JSON.parse(userStr) : null;
   },
 
   // 移除用戶信息
   removeUser: (): void => {
-    localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(STORAGE_KEYS.USER);
   },
 
   // 清除所有認證信息
   clearAuth: (): void => {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(STORAGE_KEYS.TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.USER);
   }
 };
 
@@ -72,7 +73,7 @@ export const validateToken = async (): Promise<boolean> => {
   if (!token) return false;
 
   try {
-    const response = await apiRequest('/api/auth/me');
+    const response = await apiRequest(API_ENDPOINTS.AUTH.ME);
     return response.ok;
   } catch (error) {
     console.error('Token 驗證失敗:', error);

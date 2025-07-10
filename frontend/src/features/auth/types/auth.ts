@@ -1,5 +1,7 @@
 // 認證相關類型定義
 
+import React from 'react';
+
 export interface User {
   id: number;
   username: string;
@@ -36,4 +38,17 @@ export interface AuthContextType {
 export interface AuthError {
   error: string;
   details?: string;
+}
+
+// 認證相關組件屬性
+export interface LoginProps {
+  onSwitchToRegister: () => void;
+}
+
+export interface RegisterProps {
+  onSwitchToLogin: () => void;
+}
+
+export interface ProtectedRouteProps {
+  children: React.ReactNode;
 } 

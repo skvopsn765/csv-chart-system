@@ -1,15 +1,8 @@
 import React from 'react';
+import { FieldSelectorProps } from '../../../shared/types';
+import { CHART_CONFIG } from '../../../shared/constants';
 
-interface FieldSelectorProps {
-  columns: string[];
-  csvData: { [key: string]: string | number }[] | null;
-  selectedXAxis: string;
-  selectedYAxis: string[];
-  onXAxisChange: (field: string) => void;
-  onYAxisChange: (fields: string[]) => void;
-}
-
-const FieldSelector: React.FC<FieldSelectorProps> = ({ 
+export const FieldSelector: React.FC<FieldSelectorProps> = ({ 
   columns, 
   csvData, 
   selectedXAxis, 
@@ -36,8 +29,8 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
       }
     }
     
-    // 如果超過 70% 的資料是數字，認為是數值欄位
-    return numericCount / sampleSize > 0.7;
+    // 使用常數定義的數值類型閾值
+    return numericCount / sampleSize > CHART_CONFIG.NUMERIC_THRESHOLD;
   };
 
   // 取得數值欄位列表
@@ -163,12 +156,10 @@ const FieldSelector: React.FC<FieldSelectorProps> = ({
         <ul>
           <li>X 軸：可選擇任何欄位（文字、數字、日期）</li>
           <li>Y 軸：只能選擇數值欄位</li>
-          <li>數值欄位：系統自動判斷，需 70% 以上資料為數字</li>
+          <li>數值欄位：系統自動判斷，需 {(CHART_CONFIG.NUMERIC_THRESHOLD * 100).toFixed(0)}% 以上資料為數字</li>
           <li>可同時選擇多個 Y 軸欄位進行比較</li>
         </ul>
       </div>
     </div>
   );
-};
-
-export default FieldSelector; 
+}; 
