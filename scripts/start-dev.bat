@@ -5,13 +5,13 @@ echo ===========================================
 echo.
 
 echo Starting backend server...
-start "CSV-Backend" cmd /k "cd /d %~dp0backend & npm start"
+start "CSV-Backend" cmd /k "cd /d %~dp0..\backend & npm run dev"
 
 echo Waiting 3 seconds before starting frontend...
 timeout /t 3 /nobreak > nul
 
 echo Starting frontend application...
-start "CSV-Frontend" cmd /k "cd /d %~dp0frontend & npm start"
+start "CSV-Frontend" cmd /k "cd /d %~dp0..\frontend & npm start"
 
 echo.
 echo ===========================================

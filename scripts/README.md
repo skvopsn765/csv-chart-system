@@ -1,36 +1,107 @@
-# 🔧 執行腳本資料夾
+# 📋 Script Tools
 
-本資料夾包含系統的執行腳本，用於快速安裝和啟動系統。
+This directory contains commonly used script tools to help simplify the development process.
 
-## 📄 腳本說明
+## 🛠️ Installation and Startup Scripts
 
-### 安裝腳本
-- `install-dependencies.bat` - Windows 批次檔，自動安裝前後端依賴
-- `install-dependencies.ps1` - Windows PowerShell 腳本，自動安裝前後端依賴
+### Windows Batch Scripts
+- `install-dependencies.bat` - Install frontend and backend dependencies
+- `start-dev.bat` - Start development environment
 
-### 啟動腳本
-- `start-dev.bat` - Windows 批次檔，同時啟動前後端開發服務器
+### PowerShell Scripts
+- `install-dependencies.ps1` - Install frontend and backend dependencies
 
-## 🚀 使用方法
+## 🔄 Server Management Scripts
 
-### 首次安裝
+### Stop Development Servers
+
+When you need to stop processes running on Port 3000 (frontend) and Port 5000 (backend), you can use the following scripts:
+
+#### 1. Windows Batch Script (.bat)
 ```bash
-# Windows 命令提示符
-.\scripts\install-dependencies.bat
-
-# Windows PowerShell
-.\scripts\install-dependencies.ps1
+# Double-click to execute
+./scripts/kill-dev-ports.bat
 ```
 
-### 日常開發
-```bash
-# 啟動開發服務器
-.\scripts\start-dev.bat
+#### 2. PowerShell Script (.ps1)
+```powershell
+# Execute in PowerShell
+./scripts/kill-dev-ports.ps1
+
+# Or right-click file and select "Run with PowerShell"
 ```
 
-## 📋 注意事項
+#### 3. Shell Script (.sh) - Compatible with Git Bash
+```bash
+# Execute in Git Bash
+chmod +x ./scripts/kill-dev-ports.sh
+./scripts/kill-dev-ports.sh
+```
 
-- 執行腳本前請確認已安裝 Node.js 16.0.0 或更高版本
-- 腳本會自動安裝依賴並編譯 TypeScript 代碼
-- 啟動腳本會同時運行前端和後端服務器
-- 如果遇到權限問題，請以管理員身份運行 
+### Script Features
+
+All server cleanup scripts include the following features:
+
+- ✅ **Smart Detection**: Automatically detect processes running on Port 3000 and 5000
+- 🔍 **Detailed Output**: Display found process PID and names
+- 🧹 **Thorough Cleanup**: Additional cleanup of remaining Node.js processes
+- 🎨 **Friendly Interface**: Colored output and clear status indicators
+- ⚡ **Safe Termination**: Force terminate stuck processes
+
+### Use Cases
+
+- When development servers are unresponsive
+- Clean environment before switching Git branches
+- Resolve port-in-use issues
+- Cleanup before restarting development environment
+
+## 📝 Usage Instructions
+
+### System Requirements
+- Windows 10 or higher
+- Node.js 16.0.0 or higher
+- npm or yarn package manager
+
+### Execution Permissions
+If PowerShell scripts cannot execute, run the following command with administrator privileges:
+```powershell
+Set-ExecutionPolicy RemoteSigned -CurrentUser
+```
+
+### Troubleshooting
+If scripts don't work properly:
+1. Ensure running with administrator privileges
+2. Check if antivirus software is blocking
+3. Confirm Node.js processes are actually running
+4. Manually check port usage: `netstat -ano | findstr :3000`
+
+## 🚀 Quick Start
+
+1. **Install Dependencies**:
+   ```bash
+   # Windows
+   ./scripts/install-dependencies.bat
+   
+   # PowerShell
+   ./scripts/install-dependencies.ps1
+   ```
+
+2. **Start Development Environment**:
+   ```bash
+   ./scripts/start-dev.bat
+   ```
+
+3. **Stop Development Servers**:
+   ```bash
+   # Choose one of the following
+   ./scripts/kill-dev-ports.bat
+   ./scripts/kill-dev-ports.ps1
+   ./scripts/kill-dev-ports.sh
+   ```
+
+## 💡 Tips
+
+- Recommend executing these scripts from the project root directory
+- All scripts will display execution results and status
+- If permission issues occur, run with administrator privileges
+- Scripts will pause after completion, press any key to continue 
