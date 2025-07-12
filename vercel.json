@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "name": "csv-chart-system",
   "builds": [
     {
       "src": "frontend/package.json",
@@ -11,10 +12,6 @@
     }
   ],
   "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "https://csv-chart-system-backend.onrender.com/api/$1"
-    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
