@@ -113,6 +113,22 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 // 資料庫初始化與伺服器啟動
 async function startServer(): Promise<void> {
   try {
+    // 環境變數調試（僅顯示 URL 格式，隱藏敏感資訊）
+    const databaseUrl = process.env.DATABASE_URL;
+    if (databaseUrl) {
+      const urlParts = databaseUrl.match(/^(postgresql:\/\/)([^@]+)@([^\/]+)\/(.+)$/);
+      if (urlParts) {
+        console.log('🔍 資料庫連線資訊:');
+        console.log('  - 協議:', urlParts[1]);
+        console.log('  - 主機:', urlParts[3]);
+        console.log('  - 資料庫名:', urlParts[4]);
+      } else {
+        console.log('❌ DATABASE_URL 格式不正確:', databaseUrl.substring(0, 20) + '...');
+      }
+    } else {
+      console.log('⚠️  未找到 DATABASE_URL 環境變數');
+    }
+
     // 測試資料庫連線
     await sequelize.authenticate();
     console.log('🗄️  資料庫連線成功');
@@ -127,11 +143,27 @@ async function startServer(): Promise<void> {
       console.log(`📝 環境: ${NODE_ENV}`);
       console.log(`📊 API 端點: http://localhost:${PORT}/api`);
       console.log(`🔐 認證端點: http://localhost:${PORT}/api/auth`);
-      console.log(`🗄️  資料庫: SQLite (./data/uploads.db)`);
+      console.log(`🗄️  資料庫: ${process.env.DATABASE_URL ? 'PostgreSQL (Render)' : 'SQLite (./data/uploads.db)'}`);
     });
     
   } catch (error) {
     console.error('❌ 伺服器啟動失敗:', error);
+    
+    // 添加更詳細的錯誤診斷
+    if (error instanceof Error) {
+      if (error.message.includes('ENOTFOUND')) {
+        console.error('🔍 資料庫主機名解析失敗');
+        console.error('   請檢查 DATABASE_URL 是否正確設定');
+        console.error('   主機名應該類似: dpg-xxxxx-a.oregon-postgres.render.com');
+      } else if (error.message.includes('EADDRINUSE')) {
+        console.error('🔍 連接埠已被占用');
+        console.error('   請嘗試使用不同的連接埠');
+      } else if (error.message.includes('authentication')) {
+        console.error('🔍 資料庫認證失敗');
+        console.error('   請檢查用戶名和密碼是否正確');
+      }
+    }
+    
     process.exit(1);
   }
 }
