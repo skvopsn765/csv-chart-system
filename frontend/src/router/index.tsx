@@ -6,6 +6,7 @@ import { DataUploadPage } from '../pages/DataUploadPage';
 import { DataTablePage } from '../pages/DataTablePage';
 import { ChartAnalysisPage } from '../pages/ChartAnalysisPage';
 import { DatasetManagementPage } from '../pages/DatasetManagementPage';
+import AimTrainerPage from '../pages/AimTrainerPage';
 import { AuthPage } from '../features/auth/components/AuthPage';
 import { ProtectedRoute } from '../features/auth/components/ProtectedRoute';
 
@@ -46,6 +47,10 @@ export const router = createBrowserRouter([
       {
         path: 'dataset-management',
         element: <DatasetManagementPage />,
+      },
+      {
+        path: 'aimtrainer',
+        element: <AimTrainerPage />,
       },
     ],
   },
@@ -99,5 +104,12 @@ export const navigationMenuItems: NavMenuItem[] = [
     icon: '🗂️',
     path: '/dataset-management',
     description: '管理您的資料集'
+  },
+  {
+    key: 'aimtrainer',
+    label: 'AimTrainer 處理器',
+    icon: '🎯',
+    path: '/aimtrainer',
+    description: '處理 APEX AimTrainer 資料文件'
   },
 ]; 

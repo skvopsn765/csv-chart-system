@@ -1,0 +1,72 @@
+/* AimTrainer 上傳器樣式 */
+
+.aimtrainer-uploader {
+  margin-bottom: 24px;
+}
+
+.file-upload-section {
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 8px;
+  border: 1px dashed #d9d9d9;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.file-upload-section:hover {
+  border-color: #40a9ff;
+  background: #f6ffed;
+}
+
+.selected-files {
+  margin-top: 16px;
+}
+
+.file-list {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+  padding: 8px;
+  background: #fafafa;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  margin-bottom: 4px;
+  background: #fff;
+  border-radius: 4px;
+  border: 1px solid #f0f0f0;
+  transition: all 0.3s ease;
+}
+
+.file-item:hover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-color: #d9d9d9;
+}
+
+.file-item:last-child {
+  margin-bottom: 0;
+}
+
+.process-section {
+  text-align: center;
+  padding: 16px;
+  background: #f9f9f9;
+  border-radius: 8px;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .file-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .file-item .ant-space {
+    width: 100%;
+    justify-content: space-between;
+  }
+} 

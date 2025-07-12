@@ -1,5 +1,5 @@
 import { DataTypes, Model } from 'sequelize';
-import bcrypt from 'bcryptjs';
+import * as bcrypt from 'bcryptjs';
 import sequelize from '../config/database';
 
 // 用戶模型屬性介面

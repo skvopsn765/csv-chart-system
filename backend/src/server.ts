@@ -5,12 +5,14 @@ import rateLimit from 'express-rate-limit';
 import csvRoutes from './routes/csvRoutes';
 import authRoutes from './routes/authRoutes';
 import datasetRoutes from './routes/datasetRoutes';
+import aimtrainerRoutes from './routes/aimtrainerRoutes';
 // 資料庫相關 imports
 import sequelize from './config/database';
 import Upload from './models/Upload';
 import User from './models/User';
 import Dataset from './models/Dataset';
 import DataRecord from './models/DataRecord';
+import AimTrainerRecord from './models/AimTrainerRecord';
 
 const app = express();
 
@@ -57,6 +59,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use('/api/auth', authRoutes);
 app.use('/api', csvRoutes);
 app.use('/api', datasetRoutes);
+app.use('/api/aimtrainer', aimtrainerRoutes);
 
 // 健康檢查端點
 app.get('/health', (req: Request, res: Response) => {
@@ -81,6 +84,11 @@ app.get('/', (req: Request, res: Response) => {
       csv: {
         upload: 'POST /api/upload-csv',
         test: 'GET /api/test'
+      },
+      aimtrainer: {
+        upload: 'POST /api/aimtrainer/upload',
+        records: 'GET /api/aimtrainer/records',
+        statistics: 'GET /api/aimtrainer/statistics'
       },
       health: 'GET /health'
     }

@@ -1,0 +1,110 @@
+/* AimTrainer 統計組件樣式 */
+
+.aimtrainer-stats {
+  margin-bottom: 24px;
+}
+
+.stats-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.statistics-section {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+  margin-top: 16px;
+}
+
+.statistics-section .ant-statistic {
+  text-align: center;
+}
+
+.statistics-section .ant-statistic-title {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.statistics-section .ant-statistic-content {
+  font-size: 20px;
+  font-weight: bold;
+  color: #1890ff;
+}
+
+.records-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+}
+
+.empty-state .anticon {
+  margin-bottom: 16px;
+}
+
+/* 響應式設計 */
+@media (max-width: 1200px) {
+  .statistics-section .ant-col {
+    margin-bottom: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .statistics-section {
+    padding: 16px;
+  }
+  
+  .statistics-section .ant-statistic-content {
+    font-size: 18px;
+  }
+  
+  .stats-header,
+  .records-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .records-header .ant-space {
+    width: 100%;
+  }
+}
+
+/* 統計卡片動畫 */
+.statistics-section .ant-statistic {
+  transition: all 0.3s ease;
+}
+
+.statistics-section .ant-statistic:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: #fff;
+  border-radius: 6px;
+  padding: 8px;
+}
+
+/* 表格樣式 */
+.ant-table-small .ant-table-tbody > tr > td {
+  padding: 8px;
+}
+
+.ant-table-thead > tr > th {
+  background: #fafafa;
+  font-weight: 600;
+} 
