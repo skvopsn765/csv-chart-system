@@ -304,10 +304,10 @@ router.get('/statistics', authenticateToken, async (req: Request, res: Response)
     const [aggregateResult] = await AimTrainerRecord.findAll({
       where: { userId: userId },
       attributes: [
-        [AimTrainerRecord.sequelize!.fn('SUM', AimTrainerRecord.sequelize!.col('totalShots')), 'totalShots'],
-        [AimTrainerRecord.sequelize!.fn('SUM', AimTrainerRecord.sequelize!.col('shotsHit')), 'totalHits'],
+        [AimTrainerRecord.sequelize!.fn('SUM', AimTrainerRecord.sequelize!.col('total_shots')), 'totalShots'],
+        [AimTrainerRecord.sequelize!.fn('SUM', AimTrainerRecord.sequelize!.col('shots_hit')), 'totalHits'],
         [AimTrainerRecord.sequelize!.fn('SUM', AimTrainerRecord.sequelize!.col('damage')), 'totalDamage'],
-        [AimTrainerRecord.sequelize!.fn('SUM', AimTrainerRecord.sequelize!.col('criticalShots')), 'totalCrits'],
+        [AimTrainerRecord.sequelize!.fn('SUM', AimTrainerRecord.sequelize!.col('critical_shots')), 'totalCrits'],
         [AimTrainerRecord.sequelize!.fn('AVG', AimTrainerRecord.sequelize!.col('accuracy')), 'avgAccuracy']
       ],
       raw: true
@@ -330,11 +330,11 @@ router.get('/statistics', authenticateToken, async (req: Request, res: Response)
     const challengeStats = await AimTrainerRecord.findAll({
       where: { userId: userId },
       attributes: [
-        'challengeName',
+        'challenge_name',
         [AimTrainerRecord.sequelize!.fn('COUNT', AimTrainerRecord.sequelize!.col('id')), 'count'],
         [AimTrainerRecord.sequelize!.fn('AVG', AimTrainerRecord.sequelize!.col('accuracy')), 'avgAccuracy']
       ],
-      group: ['challengeName'],
+      group: ['challenge_name'],
       order: [[AimTrainerRecord.sequelize!.fn('COUNT', AimTrainerRecord.sequelize!.col('id')), 'DESC']],
       raw: true
     });
@@ -343,13 +343,13 @@ router.get('/statistics', authenticateToken, async (req: Request, res: Response)
     const recentUploads = await AimTrainerRecord.findAll({
       where: { userId: userId },
       attributes: [
-        'fileName',
-        'fileTimestamp',
-        'uploadedAt',
+        'file_name',
+        'file_timestamp',
+        'uploaded_at',
         [AimTrainerRecord.sequelize!.fn('COUNT', AimTrainerRecord.sequelize!.col('id')), 'recordCount']
       ],
-      group: ['fileName', 'fileTimestamp', 'uploadedAt'],
-      order: [['uploadedAt', 'DESC']],
+      group: ['file_name', 'file_timestamp', 'uploaded_at'],
+      order: [['uploaded_at', 'DESC']],
       limit: 10,
       raw: true
     });
