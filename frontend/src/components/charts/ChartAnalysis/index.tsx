@@ -40,7 +40,7 @@ export const ChartAnalysis: React.FC = () => {
   const datasetChartDataSource: GenericChartDataSource = useMemo(() => ({
     title: selectedDataset ? `${selectedDataset.name} 圖表分析` : 'CSV 資料集圖表分析',
     columns: columns,
-    fetchData: async (): Promise<DataRow[]> => {
+    fetchData: async (limit = 100): Promise<DataRow[]> => {
       if (!selectedDatasetId) {
         return [];
       }
@@ -57,7 +57,14 @@ export const ChartAnalysis: React.FC = () => {
       
       if (result.success && result.data) {
         // 將 DataRecord 轉換為 DataRow 格式
-        return result.data.records.map(record => JSON.parse(record.dataJson));
+        const allRows = result.data.records.map(record => JSON.parse(record.dataJson));
+        
+        // 根據 limit 參數限制資料量
+        if (limit === 'all') {
+          return allRows;
+        } else {
+          return allRows.slice(0, limit);
+        }
       }
       
       return [];

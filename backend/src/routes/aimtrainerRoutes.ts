@@ -6,6 +6,9 @@ import { Op } from 'sequelize';
 
 const router = express.Router();
 
+// 常數定義
+const DUPLICATE_COUNT_THRESHOLD = 2; // 重複筆數閾值
+
 // 檔案上傳配置
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -172,8 +175,73 @@ router.post('/upload', authenticateToken, upload.array('files'), async (req: Req
           }
         }
         
+        const uniqueRecordsList = Array.from(uniqueRecords.values());
+        
+        // 檢查與資料庫中已有記錄的重複（按時間順序）
+        const existingRecords = await AimTrainerRecord.findAll({
+          where: {
+            userId: userId,
+            fileTimestamp: {
+              [Op.lt]: fileTimestamp // 只檢查時間戳較早的檔案
+            }
+          },
+          attributes: ['challengeName', 'weapon', 'shotsHit', 'totalShots', 'damage', 'criticalShots', 'roundTime'],
+          order: [['fileTimestamp', 'ASC']] // 按時間順序排序
+        });
+        
+        // 如果沒有較早的記錄，則全部匯入
+        if (existingRecords.length === 0) {
+          console.log(`檔案 ${fileName} 是第一個檔案或沒有較早的記錄，全部匯入`);
+        } else {
+          // 生成已有記錄的唯一標識符
+          const existingRecordKeys = new Set(
+            existingRecords.map(record => 
+              `${record.challengeName}_${record.weapon}_${record.shotsHit}_${record.totalShots}_${record.damage}_${record.criticalShots}_${record.roundTime}`
+            )
+          );
+          
+          // 檢查當前檔案的記錄是否與較早的檔案有重複
+          const duplicateCount = uniqueRecordsList.filter(record => {
+            const recordKey = `${record.challengeName}_${record.weapon}_${record.shotsHit}_${record.totalShots}_${record.damage}_${record.criticalShots}_${record.roundTime}`;
+            return existingRecordKeys.has(recordKey);
+          }).length;
+          
+          console.log(`檔案 ${fileName} 重複筆數: ${duplicateCount} 筆`);
+          
+          // 如果重複筆數少於閾值，認為是不同的檔案集合，全部匯入
+          if (duplicateCount < DUPLICATE_COUNT_THRESHOLD) {
+            console.log(`檔案 ${fileName} 重複筆數不足 ${DUPLICATE_COUNT_THRESHOLD} 筆，認為是不同的檔案集合，全部匯入`);
+          } else {
+            // 重複筆數達到閾值，進行去重
+            console.log(`檔案 ${fileName} 重複筆數達到 ${DUPLICATE_COUNT_THRESHOLD} 筆以上，進行去重處理`);
+            
+            // 過濾掉已存在的記錄
+            const filteredRecords = uniqueRecordsList.filter(record => {
+              const recordKey = `${record.challengeName}_${record.weapon}_${record.shotsHit}_${record.totalShots}_${record.damage}_${record.criticalShots}_${record.roundTime}`;
+              const isExisting = existingRecordKeys.has(recordKey);
+              
+              if (isExisting) {
+                results.duplicatesRemoved++;
+              }
+              
+              return !isExisting;
+            });
+            
+            // 更新要匯入的記錄列表
+            uniqueRecordsList.length = 0;
+            uniqueRecordsList.push(...filteredRecords);
+          }
+        }
+        
+        // 如果沒有新記錄，跳過檔案
+        if (uniqueRecordsList.length === 0) {
+          console.log(`檔案 ${fileName} 經過去重後沒有新記錄，跳過`);
+          results.skippedFiles++;
+          continue;
+        }
+        
         // 準備插入資料庫的資料
-        const recordsToInsert = Array.from(uniqueRecords.values()).map(record => ({
+        const recordsToInsert = uniqueRecordsList.map(record => ({
           userId: userId,
           fileTimestamp: fileTimestamp,
           fileName: fileName,
