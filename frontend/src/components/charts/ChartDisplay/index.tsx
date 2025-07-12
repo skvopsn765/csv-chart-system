@@ -11,10 +11,10 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts';
-import { ChartDisplayProps, ChartDataPoint, ChartTooltipProps } from '../../../shared/types';
-import { CHART_TYPES, DEFAULT_CHART_COLORS, CHART_DIMENSIONS, CHART_CONFIG } from '../../../shared/constants';
+import { ChartDisplayProps, ChartDataPoint, ChartTooltipProps, SortOrder } from '../../../shared/types';
+import { CHART_TYPES, DEFAULT_CHART_COLORS, CHART_DIMENSIONS, CHART_CONFIG, SORT_ORDERS } from '../../../shared/constants';
 
-export const ChartDisplay: React.FC<ChartDisplayProps> = ({ data, xAxis, yAxis, chartType }) => {
+export const ChartDisplay: React.FC<ChartDisplayProps> = ({ data, xAxis, yAxis, chartType, sortOrder = SORT_ORDERS.NONE }) => {
   
   // 處理圖表資料
   const chartData = useMemo((): ChartDataPoint[] => {
@@ -22,7 +22,7 @@ export const ChartDisplay: React.FC<ChartDisplayProps> = ({ data, xAxis, yAxis, 
       return [];
     }
 
-    return data.map(row => {
+    const processedData = data.map(row => {
       const chartRow: ChartDataPoint = { [xAxis]: row[xAxis] };
       
       // 處理 Y 軸數值欄位
@@ -35,7 +35,36 @@ export const ChartDisplay: React.FC<ChartDisplayProps> = ({ data, xAxis, yAxis, 
       
       return chartRow;
     });
-  }, [data, xAxis, yAxis]);
+
+    // 根據排序設定進行排序
+    if (sortOrder === SORT_ORDERS.NONE) {
+      return processedData;
+    }
+
+    return processedData.sort((a, b) => {
+      const aValue = a[xAxis];
+      const bValue = b[xAxis];
+      
+      // 處理數值類型的排序
+      const aNum = parseFloat(String(aValue));
+      const bNum = parseFloat(String(bValue));
+      
+      if (!isNaN(aNum) && !isNaN(bNum)) {
+        // 數值排序
+        return sortOrder === SORT_ORDERS.ASC ? aNum - bNum : bNum - aNum;
+      } else {
+        // 字串排序
+        const aStr = String(aValue);
+        const bStr = String(bValue);
+        
+        if (sortOrder === SORT_ORDERS.ASC) {
+          return aStr.localeCompare(bStr);
+        } else {
+          return bStr.localeCompare(aStr);
+        }
+      }
+    });
+  }, [data, xAxis, yAxis, sortOrder]);
 
   // 檢查是否有有效資料
   const hasValidData = chartData.length > 0;
@@ -132,7 +161,13 @@ export const ChartDisplay: React.FC<ChartDisplayProps> = ({ data, xAxis, yAxis, 
         <h3>
           {chartType === CHART_TYPES.LINE ? '摺線圖' : '長條圖'}
           <span className="chart-info">
-            （X軸：{xAxis}，Y軸：{yAxis.join(', ')}）
+            （X軸：{xAxis}，Y軸：{yAxis.join(', ')}
+            {sortOrder !== SORT_ORDERS.NONE && (
+              <>
+                ，排序：{sortOrder === SORT_ORDERS.ASC ? '升序' : '降序'}
+              </>
+            )}
+            ）
           </span>
         </h3>
       </div>
@@ -153,6 +188,11 @@ export const ChartDisplay: React.FC<ChartDisplayProps> = ({ data, xAxis, yAxis, 
         <div className="stats-item">
           <strong>Y 軸欄位：</strong>{yAxis.join(', ')}
         </div>
+        {sortOrder !== SORT_ORDERS.NONE && (
+          <div className="stats-item">
+            <strong>排序方式：</strong>{sortOrder === SORT_ORDERS.ASC ? '升序（由小到大）' : '降序（由大到小）'}
+          </div>
+        )}
       </div>
     </div>
   );

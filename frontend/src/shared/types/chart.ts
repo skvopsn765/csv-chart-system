@@ -5,12 +5,16 @@ import { DataRow } from './data';
 // 圖表類型枚舉
 export type ChartType = 'line' | 'bar';
 
+// 排序類型枚舉
+export type SortOrder = 'asc' | 'desc' | 'none';
+
 // 圖表顯示組件屬性
 export interface ChartDisplayProps {
   data: DataRow[] | null;
   xAxis: string;
   yAxis: string[];
   chartType: ChartType;
+  sortOrder?: SortOrder;
 }
 
 // 圖表資料點

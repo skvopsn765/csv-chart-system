@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Button, Space, message } from 'antd';
-import { BarChartOutlined, LineChartOutlined, DatabaseOutlined } from '@ant-design/icons';
-import { DataRow, ChartType } from '../../../shared/types';
-import { GenericChartAnalysisProps } from '../../../shared/types';
-import { CHART_TYPES } from '../../../shared/constants';
+import { Card, Row, Col, Button, Space, message, Select } from 'antd';
+import { BarChartOutlined, LineChartOutlined, DatabaseOutlined, SortAscendingOutlined, SortDescendingOutlined } from '@ant-design/icons';
+import { DataRow, ChartType, SortOrder } from '../../../shared/types';
+import { GenericChartAnalysisProps } from '../../../shared/types/chart';
+import { CHART_TYPES, SORT_ORDERS } from '../../../shared/constants';
 import { ChartDisplay } from '../ChartDisplay';
 import { FieldSelector } from '../FieldSelector';
 
@@ -17,6 +17,7 @@ export const GenericChartAnalysis: React.FC<GenericChartAnalysisProps> = ({
   const [selectedXAxis, setSelectedXAxis] = useState<string>('');
   const [selectedYAxis, setSelectedYAxis] = useState<string[]>([]);
   const [chartType, setChartType] = useState<ChartType>(CHART_TYPES.LINE);
+  const [sortOrder, setSortOrder] = useState<SortOrder>(SORT_ORDERS.NONE);
 
   // 載入資料
   const loadData = async () => {
@@ -28,6 +29,7 @@ export const GenericChartAnalysis: React.FC<GenericChartAnalysisProps> = ({
       // 重置圖表選擇
       setSelectedXAxis('');
       setSelectedYAxis([]);
+      setSortOrder(SORT_ORDERS.NONE);
 
       if (result.length > 0) {
         message.success(`已載入 ${result.length} 筆資料`);
@@ -50,6 +52,8 @@ export const GenericChartAnalysis: React.FC<GenericChartAnalysisProps> = ({
   // 處理 X 軸欄位選擇
   const handleXAxisChange = (fieldName: string) => {
     setSelectedXAxis(fieldName);
+    // 重置排序選項
+    setSortOrder(SORT_ORDERS.NONE);
   };
 
   // 處理 Y 軸欄位選擇
@@ -124,22 +128,61 @@ export const GenericChartAnalysis: React.FC<GenericChartAnalysisProps> = ({
               />
 
               <div style={{ marginTop: '20px' }}>
-                <Button
-                  type={chartType === CHART_TYPES.LINE ? 'primary' : 'default'}
-                  icon={<LineChartOutlined />}
-                  onClick={() => setChartType(CHART_TYPES.LINE)}
-                  style={{ marginRight: '8px', marginBottom: '8px' }}
-                >
-                  摺線圖
-                </Button>
-                <Button
-                  type={chartType === CHART_TYPES.BAR ? 'primary' : 'default'}
-                  icon={<BarChartOutlined />}
-                  onClick={() => setChartType(CHART_TYPES.BAR)}
-                  style={{ marginBottom: '8px' }}
-                >
-                  長條圖
-                </Button>
+                <div style={{ marginBottom: '16px' }}>
+                  <h4 style={{ marginBottom: '8px', fontSize: '14px', fontWeight: 'bold', color: '#1890ff' }}>圖表類型</h4>
+                  <Button
+                    type={chartType === CHART_TYPES.LINE ? 'primary' : 'default'}
+                    icon={<LineChartOutlined />}
+                    onClick={() => setChartType(CHART_TYPES.LINE)}
+                    style={{ marginRight: '8px', marginBottom: '8px' }}
+                  >
+                    摺線圖
+                  </Button>
+                  <Button
+                    type={chartType === CHART_TYPES.BAR ? 'primary' : 'default'}
+                    icon={<BarChartOutlined />}
+                    onClick={() => setChartType(CHART_TYPES.BAR)}
+                    style={{ marginBottom: '8px' }}
+                  >
+                    長條圖
+                  </Button>
+                </div>
+                
+                <div style={{ marginBottom: '16px' }}>
+                  <h4 style={{ marginBottom: '8px', fontSize: '14px', fontWeight: 'bold', color: '#1890ff' }}>X 軸排序</h4>
+                  <Select
+                    value={sortOrder}
+                    onChange={setSortOrder}
+                    style={{ width: '100%' }}
+                    disabled={!selectedXAxis}
+                    placeholder={selectedXAxis ? '選擇排序方式' : '請先選擇 X 軸欄位'}
+                  >
+                    <Select.Option value={SORT_ORDERS.NONE}>
+                      <Space>
+                        <DatabaseOutlined />
+                        不排序
+                      </Space>
+                    </Select.Option>
+                    <Select.Option value={SORT_ORDERS.ASC}>
+                      <Space>
+                        <SortAscendingOutlined />
+                        升序（由小到大）
+                      </Space>
+                    </Select.Option>
+                    <Select.Option value={SORT_ORDERS.DESC}>
+                      <Space>
+                        <SortDescendingOutlined />
+                        降序（由大到小）
+                      </Space>
+                    </Select.Option>
+                  </Select>
+                  <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                    {selectedXAxis ? 
+                      `對 ${selectedXAxis} 欄位進行排序` : 
+                      '選擇 X 軸欄位後可設定排序方式'
+                    }
+                  </div>
+                </div>
               </div>
             </Card>
           </Col>
@@ -157,6 +200,7 @@ export const GenericChartAnalysis: React.FC<GenericChartAnalysisProps> = ({
                   xAxis={selectedXAxis}
                   yAxis={selectedYAxis}
                   chartType={chartType}
+                  sortOrder={sortOrder}
                 />
               ) : (
                 <div className="chart-placeholder">

@@ -1,11 +1,18 @@
 // 圖表相關常數定義
 
-import { ChartType } from '../types/chart';
+import { ChartType, SortOrder } from '../types/chart';
 
 // 圖表類型常數
 export const CHART_TYPES: Record<string, ChartType> = {
   LINE: 'line',
   BAR: 'bar'
+} as const;
+
+// 排序類型常數
+export const SORT_ORDERS: Record<string, SortOrder> = {
+  ASC: 'asc',
+  DESC: 'desc',
+  NONE: 'none'
 } as const;
 
 // 預設顏色調色盤
