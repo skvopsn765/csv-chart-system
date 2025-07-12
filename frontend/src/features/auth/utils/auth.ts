@@ -52,7 +52,7 @@ export const apiRequest = async (
   
   // 設定 API base URL
   const baseURL = process.env.NODE_ENV === 'production' 
-    ? '' // 生產環境使用相對路徑，透過 Vercel 代理到 Render
+    ? 'https://csv-chart-system-backend.onrender.com' // 生產環境直接呼叫 Render 後端
     : process.env.REACT_APP_API_URL || 'http://localhost:5000';
   const fullUrl = url.startsWith('http') ? url : `${baseURL}${url}`;
   
