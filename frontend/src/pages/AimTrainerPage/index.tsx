@@ -53,8 +53,11 @@ const AimTrainerPage: React.FC = () => {
       'fileTimestamp',
       'fileName'
     ],
-    fetchData: async (): Promise<DataRow[]> => {
-      const response = await apiRequest(API_ENDPOINTS.AIMTRAINER.RECORDS, {
+        fetchData: async (limit = 100): Promise<DataRow[]> => {
+      const url = new URL(API_ENDPOINTS.AIMTRAINER.RECORDS, window.location.origin);
+      url.searchParams.append('limit', limit.toString());
+      
+      const response = await apiRequest(url.pathname + url.search, {
         method: 'GET'
       });
 
@@ -63,7 +66,7 @@ const AimTrainerPage: React.FC = () => {
       }
 
       const result = await response.json();
-
+      
       if (result.success && result.data) {
         // 將 AimTrainerRecord 轉換為 DataRow 格式
         return result.data.map((record: AimTrainerRecord) => ({
@@ -82,7 +85,7 @@ const AimTrainerPage: React.FC = () => {
           uploadedAt: record.uploadedAt
         }));
       }
-
+      
       return [];
     }
   };

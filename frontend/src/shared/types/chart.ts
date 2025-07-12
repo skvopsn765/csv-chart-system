@@ -41,9 +41,12 @@ export interface ChartTooltipProps {
   label?: string;
 }
 
+// 資料量選項
+export type DataLimitOption = 100 | 500 | 'all';
+
 // 通用圖表分析組件的資料來源介面
 export interface GenericChartDataSource {
-  fetchData: () => Promise<DataRow[]>;
+  fetchData: (limit?: DataLimitOption) => Promise<DataRow[]>;
   columns: string[];
   title: string;
   loading?: boolean;

@@ -225,8 +225,7 @@ router.get('/records', authenticateToken, async (req: Request, res: Response) =>
   try {
     const userId = (req as any).user.id;
     const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 100;
-    const offset = (page - 1) * limit;
+    const limitParam = req.query.limit as string;
     const weapon = req.query.weapon as string;
     const challengeName = req.query.challengeName as string;
     
@@ -243,16 +242,40 @@ router.get('/records', authenticateToken, async (req: Request, res: Response) =>
       whereConditions.challengeName = challengeName;
     }
     
-    const records = await AimTrainerRecord.findAll({
-      where: whereConditions,
-      order: [['uploadedAt', 'DESC'], ['id', 'DESC']],
-      limit: Math.min(limit, 500), // 限制最大每頁 500 筆
-      offset: offset
-    });
-    
+    // 計算總數
     const total = await AimTrainerRecord.count({
       where: whereConditions
     });
+    
+    // 處理不同的 limit 參數
+    let queryOptions: any = {
+      where: whereConditions,
+      order: [['uploadedAt', 'DESC'], ['id', 'DESC']]
+    };
+    
+    let limit: number;
+    let offset: number;
+    
+    if (limitParam === 'all') {
+      // 取得全部資料
+      limit = total;
+      offset = 0;
+    } else {
+      // 使用指定的 limit 或預設值
+      limit = parseInt(limitParam) || 100;
+      // 圖表分析時允許更大的資料量
+      if (limit > 500) {
+        limit = Math.min(limit, 10000); // 最大 10000 筆，避免記憶體問題
+      } else {
+        limit = Math.min(limit, 500); // 一般分頁最大 500 筆
+      }
+      offset = (page - 1) * limit;
+      
+      queryOptions.limit = limit;
+      queryOptions.offset = offset;
+    }
+    
+    const records = await AimTrainerRecord.findAll(queryOptions);
     
     res.json({
       success: true,
@@ -260,11 +283,12 @@ router.get('/records', authenticateToken, async (req: Request, res: Response) =>
       pagination: {
         total,
         page,
-        limit,
+        limit: limitParam === 'all' ? total : limit,
         offset,
-        totalPages: Math.ceil(total / limit),
-        hasNext: offset + limit < total,
-        hasPrev: page > 1
+        totalPages: limitParam === 'all' ? 1 : Math.ceil(total / limit),
+        hasNext: limitParam === 'all' ? false : offset + limit < total,
+        hasPrev: limitParam === 'all' ? false : page > 1,
+        isAll: limitParam === 'all'
       }
     });
     

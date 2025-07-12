@@ -15,6 +15,13 @@ export const SORT_ORDERS: Record<string, SortOrder> = {
   NONE: 'none'
 } as const;
 
+// 資料量選項常數
+export const DATA_LIMIT_OPTIONS = {
+  SMALL: 100 as const,
+  MEDIUM: 500 as const,
+  ALL: 'all' as const
+} as const;
+
 // 預設顏色調色盤
 export const DEFAULT_CHART_COLORS = [
   '#8884d8',

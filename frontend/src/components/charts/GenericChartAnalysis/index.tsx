@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Row, Col, Button, Space, message, Select, Checkbox } from 'antd';
-import { BarChartOutlined, LineChartOutlined, DatabaseOutlined, SortAscendingOutlined, SortDescendingOutlined, StockOutlined } from '@ant-design/icons';
-import { DataRow, ChartType, SortOrder } from '../../../shared/types';
+import { BarChartOutlined, LineChartOutlined, DatabaseOutlined, SortAscendingOutlined, SortDescendingOutlined, StockOutlined, NumberOutlined } from '@ant-design/icons';
+import { DataRow, ChartType, SortOrder, DataLimitOption } from '../../../shared/types';
 import { GenericChartAnalysisProps } from '../../../shared/types/chart';
-import { CHART_TYPES, SORT_ORDERS } from '../../../shared/constants';
+import { CHART_TYPES, SORT_ORDERS, DATA_LIMIT_OPTIONS } from '../../../shared/constants';
 import { ChartDisplay } from '../ChartDisplay';
 import { FieldSelector } from '../FieldSelector';
 
@@ -19,12 +19,14 @@ export const GenericChartAnalysis: React.FC<GenericChartAnalysisProps> = ({
   const [chartType, setChartType] = useState<ChartType>(CHART_TYPES.LINE);
   const [sortOrder, setSortOrder] = useState<SortOrder>(SORT_ORDERS.NONE);
   const [showTrendLine, setShowTrendLine] = useState<boolean>(false);
+  const [dataLimit, setDataLimit] = useState<DataLimitOption>(DATA_LIMIT_OPTIONS.SMALL);
 
   // 載入資料
-  const loadData = async () => {
+  const loadData = async (newLimit?: DataLimitOption) => {
     setLoading(true);
     try {
-      const result = await dataSource.fetchData();
+      const limitToUse = newLimit || dataLimit;
+      const result = await dataSource.fetchData(limitToUse);
       setData(result);
 
       // 重置圖表選擇
@@ -34,7 +36,8 @@ export const GenericChartAnalysis: React.FC<GenericChartAnalysisProps> = ({
       setShowTrendLine(false);
 
       if (result.length > 0) {
-        message.success(`已載入 ${result.length} 筆資料`);
+        const limitText = limitToUse === 'all' ? '全部' : `${limitToUse} 筆`;
+        message.success(`已載入 ${result.length} 筆資料（限制：${limitText}）`);
       } else {
         message.warning('沒有找到資料');
       }
@@ -46,9 +49,25 @@ export const GenericChartAnalysis: React.FC<GenericChartAnalysisProps> = ({
     }
   };
 
+  // 處理資料量選擇變更
+  const handleDataLimitChange = (newLimit: DataLimitOption) => {
+    setDataLimit(newLimit);
+    loadData(newLimit);
+  };
+
+  // 重新載入資料按鈕處理器
+  const handleReloadData = () => {
+    loadData();
+  };
+
   // 組件載入時自動載入資料
   useEffect(() => {
     loadData();
+  }, [dataSource]);
+
+  // 重置資料量設定當資料來源變更時
+  useEffect(() => {
+    setDataLimit(DATA_LIMIT_OPTIONS.SMALL);
   }, [dataSource]);
 
   // 處理 X 軸欄位選擇
@@ -93,7 +112,7 @@ export const GenericChartAnalysis: React.FC<GenericChartAnalysisProps> = ({
             </Col>
             <Col xs={24} sm={12} md={16}>
               <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <Button onClick={loadData} loading={loading}>
+                <Button onClick={handleReloadData} loading={loading}>
                   重新載入資料
                 </Button>
               </div>
@@ -115,13 +134,39 @@ export const GenericChartAnalysis: React.FC<GenericChartAnalysisProps> = ({
               }
               className="field-selector-card"
             >
-              <div style={{ marginBottom: '16px' }}>
-                <div style={{ fontSize: '14px', color: '#666', marginBottom: '8px' }}>
-                  資料概覽: 共 {data.length} 筆資料，{dataSource.columns.length} 個欄位
+                            <div style={{ marginBottom: '16px' }}>
+                <h4 style={{ marginBottom: '8px', fontSize: '14px', fontWeight: 'bold', color: '#1890ff' }}>資料量設定</h4>
+                <Select
+                  value={dataLimit}
+                  onChange={handleDataLimitChange}
+                  style={{ width: '100%', marginBottom: '8px' }}
+                  loading={loading}
+                >
+                  <Select.Option value={DATA_LIMIT_OPTIONS.SMALL}>
+                    <Space>
+                      <NumberOutlined />
+                      100 筆資料
+                    </Space>
+                  </Select.Option>
+                  <Select.Option value={DATA_LIMIT_OPTIONS.MEDIUM}>
+                    <Space>
+                      <NumberOutlined />
+                      500 筆資料
+                    </Space>
+                  </Select.Option>
+                  <Select.Option value={DATA_LIMIT_OPTIONS.ALL}>
+                    <Space>
+                      <DatabaseOutlined />
+                      全部資料
+                    </Space>
+                  </Select.Option>
+                </Select>
+                <div style={{ fontSize: '12px', color: '#666', marginBottom: '16px' }}>
+                  已載入: {data.length} 筆資料 / 限制: {dataLimit === 'all' ? '全部' : `${dataLimit} 筆`}
                 </div>
               </div>
-
-              <FieldSelector
+              
+              <FieldSelector 
                 columns={dataSource.columns}
                 csvData={data}
                 selectedXAxis={selectedXAxis}
