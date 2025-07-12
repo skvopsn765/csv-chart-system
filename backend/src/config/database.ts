@@ -14,6 +14,15 @@ const sequelize = databaseUrl
           rejectUnauthorized: false
         }
       },
+      pool: {
+        max: 5,
+        min: 0,
+        acquire: 30000,
+        idle: 10000
+      },
+      retry: {
+        max: 3
+      },
       logging: isDevelopment ? console.log : false,
       define: {
         timestamps: true,
