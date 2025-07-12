@@ -1,29 +1,36 @@
 import React, { useState } from 'react';
 import Papa from 'papaparse';
 import { message } from 'antd';
-import { CSVUploaderProps, DataRow, ColumnsCheckResponse, DatasetCreateResponse, DuplicateCheckResult, DuplicateCheckResponse } from '../../../shared/types';
+import {
+  CSVUploaderProps,
+  DataRow,
+  ColumnsCheckResponse,
+  DatasetCreateResponse,
+  DuplicateCheckResult,
+  DuplicateCheckResponse
+} from '../../../shared/types';
 import { FILE_UPLOAD_LIMITS, API_ENDPOINTS } from '../../../shared/constants';
 import { apiRequest } from '../../../features/auth';
 import { DuplicateConfirmation } from '../DuplicateConfirmation';
 import { DatasetSelectorModal } from '../DatasetSelectorModal';
 import './index.css';
 
-export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
+export const CSVUploader: React.FC<CSVUploaderProps> = ({onUpload}) => {
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [uploadProgress, setUploadProgress] = useState<number>(0);
-  
+
   // CSV 解析相關狀態
   const [csvData, setCsvData] = useState<{
     columns: string[];
     rows: DataRow[];
     fileName: string;
   } | null>(null);
-  
+
   // 資料集選擇相關狀態
   const [showDatasetSelector, setShowDatasetSelector] = useState<boolean>(false);
   const [selectedDatasetId, setSelectedDatasetId] = useState<number | null>(null);
-  
+
   // 重複檢查相關狀態
   const [duplicateResult, setDuplicateResult] = useState<DuplicateCheckResult | null>(null);
   const [showDuplicateConfirmation, setShowDuplicateConfirmation] = useState<boolean>(false);
@@ -55,7 +62,7 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
   const handleRestart = () => {
     console.log('🔄 用戶選擇重新開始');
     resetAllStates();
-    
+
     // 重置檔案輸入
     const fileInput = document.getElementById('csv-file-input') as HTMLInputElement;
     if (fileInput) {
@@ -73,10 +80,10 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
   // 驗證檔案格式
   const validateFile = (file: File): string | null => {
     const fileName = file.name.toLowerCase();
-    const hasValidExtension = FILE_UPLOAD_LIMITS.ALLOWED_EXTENSIONS.some(ext => 
+    const hasValidExtension = FILE_UPLOAD_LIMITS.ALLOWED_EXTENSIONS.some(ext =>
       fileName.endsWith(ext)
     );
-    
+
     if (!hasValidExtension) {
       return `請選擇 CSV 檔案（${FILE_UPLOAD_LIMITS.ALLOWED_EXTENSIONS.join(', ')} 副檔名）`;
     }
@@ -104,20 +111,20 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
             reject(new Error(`CSV 解析錯誤: ${results.errors.map(err => err.message).join(', ')}`));
             return;
           }
-          
+
           const data = results.data as DataRow[];
           if (data.length === 0) {
             reject(new Error('CSV 檔案中沒有有效資料'));
             return;
           }
-          
+
           const columns = Object.keys(data[0]);
           if (columns.length === 0) {
             reject(new Error('CSV 檔案中沒有有效欄位'));
             return;
           }
-          
-          resolve({ columns, rows: data });
+
+          resolve({columns, rows: data});
         },
         error: (error) => {
           reject(new Error(`CSV 解析失敗: ${error.message}`));
@@ -133,7 +140,7 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ columns })
+      body: JSON.stringify({columns})
     });
 
     const result: ColumnsCheckResponse = await response.json();
@@ -150,7 +157,7 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ name, description, columns })
+      body: JSON.stringify({name, description, columns})
     });
 
     const result: DatasetCreateResponse = await response.json();
@@ -167,7 +174,7 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ columns, rows })
+      body: JSON.stringify({columns, rows})
     });
 
     const result: DuplicateCheckResponse = await response.json();
@@ -184,7 +191,7 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ columns, rows })
+      body: JSON.stringify({columns, rows})
     });
 
     if (!response.ok) {
@@ -196,10 +203,10 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
   // 處理檔案選擇
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
     const file = event.target.files?.[0];
-    
+
     console.log('🔍 handleFileChange 被調用');
     console.log('選擇的檔案:', file?.name || '沒有檔案');
-    
+
     if (!file) {
       console.log('⚠️ 沒有選擇檔案，返回');
       return;
@@ -224,7 +231,7 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
     try {
       // 解析 CSV 檔案
       console.log('📄 開始解析 CSV 檔案');
-      const { columns, rows } = await parseCSVFile(file);
+      const {columns, rows} = await parseCSVFile(file);
       console.log(`📊 CSV 解析完成: ${rows.length} 筆資料, ${columns.length} 個欄位`);
       setUploadProgress(50);
 
@@ -242,7 +249,7 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
       });
 
       console.log('💾 CSV 資料已設置，準備顯示資料集選擇器');
-      
+
       if (checkResult.data?.hasMatching) {
         console.log('✅ 找到匹配的資料集，顯示選擇器');
         setShowDatasetSelector(true);
@@ -372,7 +379,7 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
     // setCsvData(null); // 移除此行
     setSelectedDatasetId(null);
     setDuplicateResult(null);
-    
+
     // 重置檔案輸入，允許重新選擇同一檔案
     const fileInput = document.getElementById('csv-file-input') as HTMLInputElement;
     if (fileInput) {
@@ -387,7 +394,7 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
         <p className="uploader-description">
           請選擇一個 CSV 檔案來開始分析資料
         </p>
-        
+
         <div className="file-input-container">
           <input
             type="file"
@@ -414,13 +421,13 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
               </p>
             </div>
             <div className="action-buttons">
-              <button 
+              <button
                 onClick={handleReopenDatasetSelector}
                 className="action-button primary"
               >
                 繼續選擇資料集
               </button>
-              <button 
+              <button
                 onClick={handleRestart}
                 className="action-button secondary"
               >
@@ -434,9 +441,9 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
         {isUploading && (
           <div className="upload-progress">
             <div className="progress-bar">
-              <div 
-                className="progress-fill" 
-                style={{ width: `${uploadProgress}%` }}
+              <div
+                className="progress-fill"
+                style={{width: `${uploadProgress}%`}}
               ></div>
             </div>
             <span className="progress-text">{uploadProgress}%</span>
@@ -496,4 +503,4 @@ export const CSVUploader: React.FC<CSVUploaderProps> = ({ onUpload }) => {
       />
     </div>
   );
-}; 
+};

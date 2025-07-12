@@ -17,7 +17,7 @@ interface TableDataRow extends DataRow {
   key: string;
 }
 
-export const DataTable: React.FC<DataTableProps> = ({ data: initialData, columns: initialColumns }) => {
+export const DataTable: React.FC<DataTableProps> = ({data: initialData, columns: initialColumns}) => {
   const [data, setData] = useState<DataRow[]>(initialData || []);
   const [columns, setColumns] = useState<string[]>(initialColumns || []);
   const [selectedDatasetId, setSelectedDatasetId] = useState<number | null>(null);
@@ -40,14 +40,14 @@ export const DataTable: React.FC<DataTableProps> = ({ data: initialData, columns
       }
 
       const result: DatasetDetailResponse = await response.json();
-      
+
       if (result.success && result.data) {
         // 將 DataRecord 轉換為 DataRow 格式
         const rows = result.data.records.map(record => ({
           id: record.id,
           ...JSON.parse(record.dataJson)
         }));
-        
+
         setData(rows);
         setColumns(result.data.columns);
         setSelectedDataset(result.data.dataset);
@@ -71,7 +71,7 @@ export const DataTable: React.FC<DataTableProps> = ({ data: initialData, columns
   const handleEditRecord = (record: TableDataRow) => {
     setEditingRecord(record);
     setEditModalVisible(true);
-    
+
     // 設定表單初始值
     const formValues: any = {};
     columns.forEach(col => {
@@ -92,7 +92,7 @@ export const DataTable: React.FC<DataTableProps> = ({ data: initialData, columns
       }
 
       message.success('記錄已成功刪除');
-      
+
       // 重新載入資料
       if (selectedDatasetId) {
         loadDatasetData(selectedDatasetId);
@@ -126,7 +126,7 @@ export const DataTable: React.FC<DataTableProps> = ({ data: initialData, columns
       setEditModalVisible(false);
       setEditingRecord(null);
       form.resetFields();
-      
+
       // 重新載入資料
       if (selectedDatasetId) {
         loadDatasetData(selectedDatasetId);
@@ -167,7 +167,7 @@ export const DataTable: React.FC<DataTableProps> = ({ data: initialData, columns
         <Space size="small">
           <Button
             type="primary"
-            icon={<EditOutlined />}
+            icon={<EditOutlined/>}
             size="small"
             onClick={() => handleEditRecord(record)}
           >
@@ -182,7 +182,7 @@ export const DataTable: React.FC<DataTableProps> = ({ data: initialData, columns
             <Button
               type="primary"
               danger
-              icon={<DeleteOutlined />}
+              icon={<DeleteOutlined/>}
               size="small"
             >
               刪除
@@ -205,7 +205,7 @@ export const DataTable: React.FC<DataTableProps> = ({ data: initialData, columns
       <div className="table-header">
         <div className="header-left">
           <h3>
-            <DatabaseOutlined /> 資料表格
+            <DatabaseOutlined/> 資料表格
           </h3>
           {selectedDataset && (
             <div className="dataset-info">
@@ -231,7 +231,7 @@ export const DataTable: React.FC<DataTableProps> = ({ data: initialData, columns
             <span>共 {data.length} 筆資料</span>
             <span>共 {columns.length} 個欄位</span>
           </div>
-          
+
           <Table
             columns={tableColumns}
             dataSource={tableData}
@@ -243,7 +243,7 @@ export const DataTable: React.FC<DataTableProps> = ({ data: initialData, columns
               showQuickJumper: true,
               showTotal: (total, range) => `第 ${range[0]}-${range[1]} 筆，共 ${total} 筆資料`
             }}
-            scroll={{ x: 'max-content' }}
+            scroll={{x: 'max-content'}}
             size="middle"
           />
         </div>
@@ -279,7 +279,7 @@ export const DataTable: React.FC<DataTableProps> = ({ data: initialData, columns
                 }
               ]}
             >
-              <Input />
+              <Input/>
             </Form.Item>
           ))}
           <Form.Item>
@@ -296,4 +296,4 @@ export const DataTable: React.FC<DataTableProps> = ({ data: initialData, columns
       </Modal>
     </div>
   );
-}; 
+};
