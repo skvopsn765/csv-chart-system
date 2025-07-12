@@ -10,16 +10,14 @@
       }
     }
   ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "frontend/build/index.html"
-    }
-  ],
   "rewrites": [
     {
       "source": "/api/(.*)",
       "destination": "https://your-backend-app.onrender.com/api/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 } 
