@@ -2,4 +2,5 @@
 
 export { ChartDisplay } from './ChartDisplay';
 export { FieldSelector } from './FieldSelector';
-export { ChartAnalysis } from './ChartAnalysis'; 
+export { ChartAnalysis } from './ChartAnalysis';
+export { GenericChartAnalysis } from './GenericChartAnalysis'; 

@@ -27,4 +27,19 @@ export interface ChartTooltipProps {
     color: string;
   }>;
   label?: string;
+}
+
+// 通用圖表分析組件的資料來源介面
+export interface GenericChartDataSource {
+  fetchData: () => Promise<DataRow[]>;
+  columns: string[];
+  title: string;
+  loading?: boolean;
+}
+
+// 通用圖表分析組件屬性
+export interface GenericChartAnalysisProps {
+  dataSource: GenericChartDataSource;
+  showDataSourceInfo?: boolean;
+  className?: string;
 } 

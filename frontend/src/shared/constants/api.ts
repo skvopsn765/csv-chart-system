@@ -47,6 +47,12 @@ export const API_ENDPOINTS = {
     GET: '/api/records/:id',
     UPDATE: '/api/records/:id',
     DELETE: '/api/records/:id'
+  },
+  AIMTRAINER: {
+    UPLOAD: '/api/aimtrainer/upload',
+    RECORDS: '/api/aimtrainer/records',
+    STATISTICS: '/api/aimtrainer/statistics',
+    DELETE_RECORD: '/api/aimtrainer/records/:id'
   }
 } as const;
 
