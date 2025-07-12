@@ -1,6 +1,6 @@
 // 認證工具函數
 
-import { STORAGE_KEYS, API_ENDPOINTS } from '../../../shared/constants';
+import { STORAGE_KEYS, API_ENDPOINTS, ENV_CONFIG } from '../../../shared/constants';
 import { User } from '../types/auth';
 
 // Token 管理工具
@@ -50,10 +50,8 @@ export const apiRequest = async (
 ): Promise<Response> => {
   const token = tokenManager.getToken();
   
-  // 設定 API base URL
-  const baseURL = process.env.NODE_ENV === 'production' 
-    ? 'https://csv-chart-system-backend.onrender.com' // 生產環境直接使用後端 URL
-    : process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  // 使用統一的環境配置
+  const baseURL = ENV_CONFIG.API_BASE_URL;
   const fullUrl = url.startsWith('http') ? url : `${baseURL}${url}`;
   
   // 準備 headers
@@ -69,7 +67,9 @@ export const apiRequest = async (
 
   return fetch(fullUrl, {
     ...options,
-    headers
+    headers,
+    // 設置請求超時
+    signal: options.signal || AbortSignal.timeout(ENV_CONFIG.API_TIMEOUT)
   });
 };
 

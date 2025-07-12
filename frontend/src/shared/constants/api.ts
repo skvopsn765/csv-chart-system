@@ -1,5 +1,26 @@
 // API 相關常數定義
 
+// 環境配置 (使用 React 的環境變量系統)
+// React 會根據 NODE_ENV 自動載入對應的 .env 文件
+export const ENV_CONFIG = {
+  // API 設定
+  API_BASE_URL: process.env.REACT_APP_API_URL!,
+  API_TIMEOUT: parseInt(process.env.REACT_APP_API_TIMEOUT || '30000'),
+  
+  // 應用程式設定
+  APP_NAME: process.env.REACT_APP_APP_NAME!,
+  VERSION: process.env.REACT_APP_VERSION!,
+  DEBUG: process.env.REACT_APP_DEBUG === 'true',
+  
+  // 檔案上傳設定
+  MAX_FILE_SIZE: parseInt(process.env.REACT_APP_MAX_FILE_SIZE || '10485760'),
+  MAX_ROWS: parseInt(process.env.REACT_APP_MAX_ROWS || '5000'),
+  
+  // 環境檢查
+  IS_DEVELOPMENT: process.env.NODE_ENV === 'development',
+  IS_PRODUCTION: process.env.NODE_ENV === 'production'
+} as const;
+
 // API 端點
 export const API_ENDPOINTS = {
   AUTH: {
@@ -37,8 +58,8 @@ export const STORAGE_KEYS = {
 
 // 檔案上傳限制
 export const FILE_UPLOAD_LIMITS = {
-  MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
-  MAX_ROWS: 5000,
+  MAX_FILE_SIZE: ENV_CONFIG.MAX_FILE_SIZE,
+  MAX_ROWS: ENV_CONFIG.MAX_ROWS,
   ALLOWED_EXTENSIONS: ['.csv'],
   ALLOWED_MIME_TYPES: [
     'text/csv',
