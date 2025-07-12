@@ -2,15 +2,16 @@ import express, { Request, Response } from 'express';
 import multer from 'multer';
 import Papa, { ParseResult } from 'papaparse';
 import crypto from 'crypto';
+import { authenticateToken } from '../middleware/auth';
 import Dataset from '../models/Dataset';
 import DataRecord from '../models/DataRecord';
-import { authenticateToken } from '../middleware/auth';
+import { Op } from 'sequelize';
 
 const router = express.Router();
 
 // 常數定義
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-const MAX_ROWS = 5000; // 最大資料列數
+const MAX_ROWS = 50000; // 最大資料列數
 const MAX_COLUMNS = 100; // 最大欄位數
 
 // 介面定義
@@ -39,7 +40,7 @@ const upload = multer({
     fileSize: MAX_FILE_SIZE,
     files: 1
   },
-  fileFilter: (req: Request, file: Express.Multer.File, cb: (error: Error | null, acceptFile?: boolean) => void) => {
+  fileFilter: (req: Request, file: any, cb: (error: Error | null, acceptFile?: boolean) => void) => {
     const allowedMimeTypes = [
       'text/csv',
       'application/vnd.ms-excel',

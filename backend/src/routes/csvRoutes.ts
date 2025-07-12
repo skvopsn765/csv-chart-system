@@ -1,30 +1,32 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import multer from 'multer';
 import Papa, { ParseResult } from 'papaparse';
-import { Op } from 'sequelize';
+import { authenticateToken } from '../middleware/auth';
 import Upload from '../models/Upload';
+import User from '../models/User';
 import Dataset from '../models/Dataset';
 import DataRecord from '../models/DataRecord';
-import { authenticateToken } from '../middleware/auth';
+import { Op } from 'sequelize';
 
 const router = express.Router();
 
-// 常數定義
+// 檔案上傳限制常數
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-const MAX_ROWS = 5000; // 最大資料列數
+const MAX_ROWS = 50000; // 最大資料行數
 const MAX_COLUMNS = 100; // 最大欄位數
 
-// 介面定義
+// CSV 資料類型定義
 interface CSVData {
   [key: string]: string | number;
 }
 
-// 重複檢查相關介面
+// 重複檢查請求介面
 interface DuplicateCheckRequest {
   columns: string[];
   rows: CSVData[];
 }
 
+// 重複檢查結果介面
 interface DuplicateCheckResult {
   hasDuplicates: boolean;
   duplicateCount: number;
@@ -32,6 +34,7 @@ interface DuplicateCheckResult {
   existingDataCount: number;
 }
 
+// 處理後的 CSV 資料格式
 interface ProcessedCSVData {
   columns: string[];
   rows: CSVData[];
@@ -44,14 +47,14 @@ interface ProcessedCSVData {
   };
 }
 
-// 設定 multer 檔案上傳中間件
+// 設定 Multer 中間件進行檔案上傳
 const upload = multer({
-  storage: multer.memoryStorage(), // 存儲在記憶體中
+  storage: multer.memoryStorage(), // 使用記憶體儲存
   limits: {
     fileSize: MAX_FILE_SIZE,
     files: 1 // 只允許一個檔案
   },
-  fileFilter: (req: Request, file: Express.Multer.File, cb: (error: Error | null, acceptFile?: boolean) => void) => {
+  fileFilter: (req: Request, file: any, cb: (error: Error | null, acceptFile?: boolean) => void) => {
     // 檢查檔案類型
     const allowedMimeTypes = [
       'text/csv',
@@ -229,7 +232,9 @@ const checkDuplicateData = async (newRows: CSVData[], newColumns: string[], user
 
 // 擴展 Request 介面以包含 file 屬性
 interface RequestWithFile extends Request {
-  file?: Express.Multer.File;
+  file?: any;
+  user?: User;
+  body: any;
 }
 
 // POST /api/upload-csv - 上傳 CSV 檔案 (需要認證)
