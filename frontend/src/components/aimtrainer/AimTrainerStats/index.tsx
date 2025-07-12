@@ -71,7 +71,7 @@ const AimTrainerStats: React.FC<AimTrainerStatsProps> = ({ refreshTrigger }) => 
       const response = await apiRequest(`/api/aimtrainer/records/${recordId}`, {
         method: 'DELETE'
       });
-      
+
       if (response.ok) {
         message.success('記錄已刪除');
         fetchRecords(selectedWeapon, selectedChallenge, currentPage, pageSize);
@@ -197,7 +197,7 @@ const AimTrainerStats: React.FC<AimTrainerStatsProps> = ({ refreshTrigger }) => 
     setLoading(true);
     Promise.all([
       fetchStatistics(),
-      fetchRecords('', '', 1, 100) // 初始化時使用第1頁，每頁100筆
+      fetchRecords('', '', 1, 10) // 初始化時使用第1頁，每頁10筆
     ]).finally(() => {
       setLoading(false);
     });
@@ -275,7 +275,7 @@ const AimTrainerStats: React.FC<AimTrainerStatsProps> = ({ refreshTrigger }) => 
                 />
               </Col>
             </Row>
-            
+
             <Row gutter={16} style={{ marginTop: 16 }}>
               <Col span={6}>
                 <Statistic
@@ -357,7 +357,7 @@ const AimTrainerStats: React.FC<AimTrainerStatsProps> = ({ refreshTrigger }) => 
               pageSize: pageSize,
               total: totalRecords,
               showSizeChanger: true,
-              pageSizeOptions: ['50', '100', '200', '500'],
+              pageSizeOptions: ['10', '50', '100', '200', '500'],
               showTotal: (total, range) => `${range[0]}-${range[1]} 共 ${total} 筆`,
               onChange: handlePageChange,
               onShowSizeChange: handleShowSizeChange,
@@ -371,4 +371,4 @@ const AimTrainerStats: React.FC<AimTrainerStatsProps> = ({ refreshTrigger }) => 
   );
 };
 
-export default AimTrainerStats; 
+export default AimTrainerStats;
