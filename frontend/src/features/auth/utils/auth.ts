@@ -51,7 +51,9 @@ export const apiRequest = async (
   const token = tokenManager.getToken();
   
   // 設定 API base URL
-  const baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  const baseURL = process.env.NODE_ENV === 'production' 
+    ? '' // 生產環境使用相對路徑，透過 Vercel 代理到 Render
+    : process.env.REACT_APP_API_URL || 'http://localhost:5000';
   const fullUrl = url.startsWith('http') ? url : `${baseURL}${url}`;
   
   // 準備 headers

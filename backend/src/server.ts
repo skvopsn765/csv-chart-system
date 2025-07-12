@@ -38,7 +38,7 @@ app.use('/api/', limiter);
 // CORS 設定
 const corsOptions = {
   origin: NODE_ENV === 'production' 
-    ? ['https://yourdomain.com'] // 生產環境時設定實際域名
+    ? ['https://your-frontend-app.vercel.app'] // 生產環境時設定 Vercel 域名
     : ['http://localhost:3000', 'http://127.0.0.1:3000'], // 開發環境
   credentials: true,
   optionsSuccessStatus: 200

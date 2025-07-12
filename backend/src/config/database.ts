@@ -1,14 +1,33 @@
 import { Sequelize } from 'sequelize';
 
+// 環境變數配置
+const isDevelopment = process.env.NODE_ENV !== 'production';
+const databaseUrl = process.env.DATABASE_URL;
+
 // 資料庫設定
-const sequelize = new Sequelize({
-  dialect: 'sqlite',
-  storage: './data/uploads.db',  // 資料庫檔案位置
-  logging: console.log,          // 開發時顯示 SQL (相當於 .NET 的 EF Core logging)
-  define: {
-    timestamps: true,            // 自動加入 createdAt, updatedAt
-    underscored: true,           // 使用 snake_case 欄位名稱
-  }
-});
+const sequelize = databaseUrl
+  ? new Sequelize(databaseUrl, {
+      dialect: 'postgres',
+      dialectOptions: {
+        ssl: {
+          require: true,
+          rejectUnauthorized: false
+        }
+      },
+      logging: isDevelopment ? console.log : false,
+      define: {
+        timestamps: true,
+        underscored: true,
+      }
+    })
+  : new Sequelize({
+      dialect: 'sqlite',
+      storage: './data/uploads.db',
+      logging: isDevelopment ? console.log : false,
+      define: {
+        timestamps: true,
+        underscored: true,
+      }
+    });
 
 export default sequelize; 
