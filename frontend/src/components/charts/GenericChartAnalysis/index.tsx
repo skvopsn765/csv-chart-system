@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Button, Space, message, Select } from 'antd';
-import { BarChartOutlined, LineChartOutlined, DatabaseOutlined, SortAscendingOutlined, SortDescendingOutlined } from '@ant-design/icons';
+import { Card, Row, Col, Button, Space, message, Select, Checkbox } from 'antd';
+import { BarChartOutlined, LineChartOutlined, DatabaseOutlined, SortAscendingOutlined, SortDescendingOutlined, StockOutlined } from '@ant-design/icons';
 import { DataRow, ChartType, SortOrder } from '../../../shared/types';
 import { GenericChartAnalysisProps } from '../../../shared/types/chart';
 import { CHART_TYPES, SORT_ORDERS } from '../../../shared/constants';
@@ -18,6 +18,7 @@ export const GenericChartAnalysis: React.FC<GenericChartAnalysisProps> = ({
   const [selectedYAxis, setSelectedYAxis] = useState<string[]>([]);
   const [chartType, setChartType] = useState<ChartType>(CHART_TYPES.LINE);
   const [sortOrder, setSortOrder] = useState<SortOrder>(SORT_ORDERS.NONE);
+  const [showTrendLine, setShowTrendLine] = useState<boolean>(false);
 
   // 載入資料
   const loadData = async () => {
@@ -30,6 +31,7 @@ export const GenericChartAnalysis: React.FC<GenericChartAnalysisProps> = ({
       setSelectedXAxis('');
       setSelectedYAxis([]);
       setSortOrder(SORT_ORDERS.NONE);
+      setShowTrendLine(false);
 
       if (result.length > 0) {
         message.success(`已載入 ${result.length} 筆資料`);
@@ -52,8 +54,9 @@ export const GenericChartAnalysis: React.FC<GenericChartAnalysisProps> = ({
   // 處理 X 軸欄位選擇
   const handleXAxisChange = (fieldName: string) => {
     setSelectedXAxis(fieldName);
-    // 重置排序選項
+    // 重置排序選項和趨勢線選項
     setSortOrder(SORT_ORDERS.NONE);
+    setShowTrendLine(false);
   };
 
   // 處理 Y 軸欄位選擇
@@ -183,6 +186,26 @@ export const GenericChartAnalysis: React.FC<GenericChartAnalysisProps> = ({
                     }
                   </div>
                 </div>
+                
+                <div style={{ marginBottom: '16px' }}>
+                  <h4 style={{ marginBottom: '8px', fontSize: '14px', fontWeight: 'bold', color: '#1890ff' }}>趨勢線</h4>
+                  <Checkbox 
+                    checked={showTrendLine}
+                    onChange={(e) => setShowTrendLine(e.target.checked)}
+                    disabled={!selectedXAxis || selectedYAxis.length === 0}
+                  >
+                    <Space>
+                      <StockOutlined />
+                      顯示趨勢線
+                    </Space>
+                  </Checkbox>
+                  <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                    {selectedXAxis && selectedYAxis.length > 0 ? 
+                      '顯示線性回歸趨勢線（僅支援數值型 X 軸）' : 
+                      '選擇 X 軸和 Y 軸欄位後可顯示趨勢線'
+                    }
+                  </div>
+                </div>
               </div>
             </Card>
           </Col>
@@ -201,6 +224,7 @@ export const GenericChartAnalysis: React.FC<GenericChartAnalysisProps> = ({
                   yAxis={selectedYAxis}
                   chartType={chartType}
                   sortOrder={sortOrder}
+                  showTrendLine={showTrendLine}
                 />
               ) : (
                 <div className="chart-placeholder">

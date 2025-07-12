@@ -15,11 +15,19 @@ export interface ChartDisplayProps {
   yAxis: string[];
   chartType: ChartType;
   sortOrder?: SortOrder;
+  showTrendLine?: boolean;
 }
 
 // 圖表資料點
 export interface ChartDataPoint {
   [key: string]: string | number | null;
+}
+
+// 趨勢線資料點
+export interface TrendLinePoint {
+  x: number;
+  y: number;
+  [key: string]: number;
 }
 
 // 圖表工具提示屬性
