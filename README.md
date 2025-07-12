@@ -7,69 +7,146 @@
 **前端**: React + TypeScript + Context API  
 **後端**: Node.js + Express + TypeScript + SQLite + JWT  
 **認證**: bcryptjs 密碼加密 + JWT Token 驗證  
+**環境管理**: env-cmd 支援多環境配置
 
 ---
 
-## 🚀 安裝說明
+## 🚀 快速開始
 
 ### 系統需求
 - **Node.js**: 16.0.0 或更高版本
 - **npm**: 最新版本
 - **瀏覽器**: 支持 ES6+ 的現代瀏覽器
 
-### 方法一：使用安裝腳本 (推薦)
+### 一鍵安裝與啟動
 ```bash
-# Windows
+# Windows 用戶
 .\scripts\install-dependencies.bat
+.\scripts\start-dev.bat
 
-# Windows PowerShell
+# PowerShell 用戶
 .\scripts\install-dependencies.ps1
+.\scripts\start-dev.bat
 ```
 
-### 方法二：手動安裝
+### 手動安裝
 ```bash
 # 1. 克隆項目
 git clone <repository-url>
 cd csv-chart-system
 
 # 2. 安裝後端依賴
-cd backend
-npm install
+cd backend && npm install
 
 # 3. 安裝前端依賴  
-cd ../frontend
-npm install
+cd ../frontend && npm install
 
 # 4. 編譯後端 TypeScript
-cd ../backend
-npm run build
-```
-
----
-
-## 🎯 啟動說明
-
-### 快速啟動
-```bash
-# 使用啟動腳本
-.\scripts\start-dev.bat
-```
-
-### 手動啟動
-```bash
-# 1. 啟動後端服務器
-cd backend
-npm start
-
-# 2. 啟動前端應用 (新終端)
-cd frontend  
-npm start
+cd ../backend && npm run build
 ```
 
 ### 訪問地址
 - **前端應用**: http://localhost:3000
 - **後端 API**: http://localhost:5000
 - **健康檢查**: http://localhost:5000/health
+
+---
+
+## 🔧 環境配置
+
+### 環境文件結構
+```
+frontend/
+├── config/
+│   └── environments/
+│       ├── .env                # 基礎配置
+│       ├── .env.development   # 開發環境
+│       ├── .env.production    # 生產環境
+│       └── .env.example       # 範例文件
+```
+
+### 環境變量設置
+每個環境文件包含以下變量：
+```env
+# API 設定
+REACT_APP_API_URL=http://localhost:5000
+REACT_APP_API_TIMEOUT=30000
+
+# 應用程式設定
+REACT_APP_APP_NAME=CSV Chart System
+REACT_APP_VERSION=1.0.0
+REACT_APP_DEBUG=false
+
+# 檔案上傳設定
+REACT_APP_MAX_FILE_SIZE=10485760
+REACT_APP_MAX_ROWS=5000
+```
+
+### 環境配置規則
+1. **必須以 `REACT_APP_` 開頭** - React 安全機制
+2. **優先級順序**: `.env.development` → `.env` → 預設值
+3. **重啟開發服務器** - 修改環境變量後需要重啟才生效
+
+---
+
+## 🛠️ 開發指令
+
+### 後端指令
+```bash
+cd backend
+npm run dev      # 開發模式 (nodemon)
+npm start        # 生產模式
+npm run build    # 編譯 TypeScript
+npm test         # 執行測試
+```
+
+### 前端指令
+```bash
+cd frontend
+npm start              # 開發模式 (使用 .env.development)
+npm run build          # 生產版本 (使用 .env.production)
+npm test               # 執行測試
+
+# 環境特定指令
+npm run start:dev      # 開發環境
+npm run start:prod     # 生產環境
+npm run build:dev      # 開發環境建置
+npm run build:prod     # 生產環境建置
+```
+
+---
+
+## 📋 腳本工具
+
+### 安裝腳本
+```bash
+# Windows
+.\scripts\install-dependencies.bat
+
+# PowerShell
+.\scripts\install-dependencies.ps1
+```
+
+### 啟動腳本
+```bash
+# 啟動開發環境
+.\scripts\start-dev.bat
+```
+
+### 停止服務腳本
+當需要停止 Port 3000 (前端) 和 Port 5000 (後端) 的進程時：
+```bash
+# 擇一執行
+.\scripts\stop-dev-ports.ps1      # PowerShell
+.\scripts\stop-dev-ports.bat      # Batch (如果存在)
+```
+
+### 腳本功能
+- ✅ **智能檢測**: 自動檢測 Port 3000 和 5000 上的進程
+- 🔍 **詳細輸出**: 顯示找到的進程 PID 和名稱
+- 🧹 **徹底清理**: 額外清理殘留的 Node.js 進程
+- 🎨 **友好界面**: 彩色輸出和清晰狀態指示
+- ⚡ **安全終止**: 強制終止卡住的進程
 
 ---
 
@@ -148,27 +225,6 @@ npm start
 
 ---
 
-## 🔧 開發指令
-
-### 後端
-```bash
-cd backend
-npm run dev      # 開發模式 (nodemon)
-npm start        # 生產模式
-npm run build    # 編譯 TypeScript
-npm test         # 執行測試
-```
-
-### 前端
-```bash
-cd frontend
-npm start        # 開發模式
-npm run build    # 生產版本
-npm test         # 執行測試
-```
-
----
-
 ## 🗂️ 專案結構
 
 ```
@@ -177,15 +233,22 @@ csv-chart-system/
 │   ├── install-dependencies.bat
 │   ├── install-dependencies.ps1
 │   └── start-dev.bat
-├── docs/                    # 文檔資料夾
+├── docs/                    # 歷史文檔與詳細說明
 │   ├── AUTHENTICATION_SYSTEM_SUMMARY.md
-│   ├── QUICK_START_GUIDE.md
-│   └── ... (其他文檔)
+│   ├── TYPESCRIPT_UPGRADE_SUMMARY.md
+│   └── ... (技術實現詳情)
 ├── frontend/                # React 前端
+│   ├── config/
+│   │   └── environments/   # 環境配置文件
+│   │       ├── .env
+│   │       ├── .env.development
+│   │       ├── .env.production
+│   │       └── .env.example
 │   ├── src/
 │   │   ├── components/     # React 組件
-│   │   ├── contexts/       # 認證上下文
-│   │   ├── utils/          # 工具函數
+│   │   ├── features/       # 功能模組
+│   │   │   └── auth/       # 認證功能
+│   │   ├── shared/         # 共用組件與工具
 │   │   └── types/          # TypeScript 類型
 │   └── package.json
 ├── backend/                 # Node.js 後端
@@ -196,59 +259,87 @@ csv-chart-system/
 │   │   └── config/         # 配置
 │   └── package.json
 ├── sample-data.csv         # 範例數據
-└── README.md              # 主要文檔
+├── vercel.json             # Vercel 部署配置
+└── README.md              # 主要文檔 (本文件)
 ```
 
 ---
 
-## 🎉 測試建議
+## 🚀 部署說明
 
-### 測試帳戶
-- 用戶名: `testuser`
-- 密碼: `123456`
+### Vercel 部署
+項目已配置 Vercel 自動部署：
+- **建置指令**: `npm run build:prod`
+- **環境變量**: 使用 `config/environments/.env.production`
+- **自動部署**: 推送到 main 分支時自動部署
 
-### 測試流程
-1. 使用測試帳戶登入
-2. 上傳 `sample-data.csv` 文件
-3. 選擇字段創建圖表
-4. 切換圖表類型
-5. 查看資料頁籤
-6. 登出再重新登入測試
+### 環境變量管理
+- **開發環境**: `frontend/config/environments/.env.development`
+- **生產環境**: `frontend/config/environments/.env.production`
+- **本地覆蓋**: `frontend/config/environments/.env.local` (被 git 忽略)
 
 ---
 
-## 🐛 常見問題
+## 🔧 故障排除
 
-**Q: 無法啟動系統？**  
-A: 確認 Node.js 版本 >= 16.0.0，並完成依賴安裝
+### 執行權限問題
+如果 PowerShell 腳本無法執行，以管理員權限運行：
+```powershell
+Set-ExecutionPolicy RemoteSigned -CurrentUser
+```
 
-**Q: 無法登入？**  
-A: 檢查用戶名/密碼，確認後端服務器正在運行
+### 常見問題
+- **無法啟動系統？** 確認 Node.js 版本 >= 16.0.0，完成依賴安裝
+- **無法登入？** 檢查用戶名/密碼，確認後端服務器正在運行
+- **無法上傳文件？** 確認已登入，檢查 CSV 格式和文件大小
+- **圖表不顯示？** 確認選擇了 X 軸和至少一個 Y 軸字段
+- **字段無法選擇？** Y 軸只能選擇數字字段（需 70%+ 數據為數字）
 
-**Q: 無法上傳文件？**  
-A: 確認已登入，檢查 CSV 格式和文件大小
+### 手動檢查端口使用
+```bash
+# Windows
+netstat -ano | findstr :3000
+netstat -ano | findstr :5000
 
-**Q: 圖表不顯示？**  
-A: 確認選擇了 X 軸和至少一個 Y 軸字段
-
-**Q: 字段無法選擇？**  
-A: Y 軸只能選擇數字字段（需 70%+ 數據為數字）
+# 手動終止進程
+taskkill /PID <PID> /F
+```
 
 ---
 
 ## 📚 詳細文檔
 
-更多詳細信息請查看 `docs/` 資料夾中的文檔：
-- 認證系統詳細說明
-- 升級記錄
-- 安裝故障排除
-- 快速使用指南
+`docs/` 資料夾包含詳細的技術文檔：
+- **認證系統實現** - 詳細的技術架構說明
+- **TypeScript 升級記錄** - 從 JavaScript 遷移的完整記錄
+- **安裝故障排除** - 深入的安裝問題解決方案
+
+---
+
+## 🔄 更新日誌
+
+### v1.1.0 - 環境配置重構 (2024-01-12)
+- ✅ 新增多環境配置支援
+- ✅ 環境文件統一管理於 `config/environments/`
+- ✅ 使用 `env-cmd` 取代 `cross-env`
+- ✅ 整合所有 README 文檔
+- ✅ 簡化項目結構
+
+### v1.0.0 - 初始版本
+- ✅ 完整的 CSV 上傳與圖表生成功能
+- ✅ JWT 認證系統
+- ✅ React + TypeScript 前端
+- ✅ Node.js + Express 後端
+- ✅ 自動部署配置
 
 ---
 
 ## 🎊 開始使用
 
-系統已完成安裝和配置，現在您可以：
-1. 執行 `.\scripts\start-dev.bat` 啟動系統
-2. 訪問 http://localhost:3000 開始使用
-3. 享受安全的 CSV 圖表創建體驗！ 
+系統已完成配置，現在您可以：
+
+1. **快速啟動**: `.\scripts\start-dev.bat`
+2. **訪問應用**: http://localhost:3000
+3. **開始體驗**: 註冊帳戶並上傳 CSV 文件！
+
+享受安全便捷的 CSV 圖表創建體驗！ 🚀 
