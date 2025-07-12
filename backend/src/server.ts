@@ -41,7 +41,10 @@ const corsOptions = {
     ? ['https://csv-chart-system.vercel.app'] // 生產環境時設定 Vercel 域名
     : ['http://localhost:3000', 'http://127.0.0.1:3000'], // 開發環境
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  preflightContinue: false
 };
 
 app.use(cors(corsOptions));

@@ -10,14 +10,11 @@
       }
     }
   ],
-  "redirects": [
+  "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://csv-chart-system-backend.onrender.com/api/$1",
-      "permanent": false
-    }
-  ],
-  "rewrites": [
+      "destination": "https://csv-chart-system-backend.onrender.com/api/$1"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
