@@ -19,6 +19,9 @@ const AimTrainerStats: React.FC<AimTrainerStatsProps> = ({ refreshTrigger }) => 
   const [recordsLoading, setRecordsLoading] = useState(false);
   const [selectedWeapon, setSelectedWeapon] = useState<string>('');
   const [selectedChallenge, setSelectedChallenge] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(100);
+  const [totalRecords, setTotalRecords] = useState(0);
 
   // 獲取統計資料
   const fetchStatistics = async () => {
@@ -37,11 +40,12 @@ const AimTrainerStats: React.FC<AimTrainerStatsProps> = ({ refreshTrigger }) => 
   };
 
   // 獲取記錄列表
-  const fetchRecords = async (weapon = '', challengeName = '') => {
+  const fetchRecords = async (weapon = '', challengeName = '', page = currentPage, limit = pageSize) => {
     setRecordsLoading(true);
     try {
       const queryParams = new URLSearchParams();
-      queryParams.append('limit', '50');
+      queryParams.append('page', page.toString());
+      queryParams.append('limit', limit.toString());
       if (weapon) queryParams.append('weapon', weapon);
       if (challengeName) queryParams.append('challengeName', challengeName);
 
@@ -49,6 +53,7 @@ const AimTrainerStats: React.FC<AimTrainerStatsProps> = ({ refreshTrigger }) => 
       if (response.ok) {
         const result = await response.json();
         setRecords(result.data);
+        setTotalRecords(result.pagination.total);
       } else {
         throw new Error('獲取記錄失敗');
       }
@@ -69,7 +74,7 @@ const AimTrainerStats: React.FC<AimTrainerStatsProps> = ({ refreshTrigger }) => 
       
       if (response.ok) {
         message.success('記錄已刪除');
-        fetchRecords(selectedWeapon, selectedChallenge);
+        fetchRecords(selectedWeapon, selectedChallenge, currentPage, pageSize);
         fetchStatistics();
       } else {
         throw new Error('刪除失敗');
@@ -85,7 +90,7 @@ const AimTrainerStats: React.FC<AimTrainerStatsProps> = ({ refreshTrigger }) => 
     setLoading(true);
     Promise.all([
       fetchStatistics(),
-      fetchRecords(selectedWeapon, selectedChallenge)
+      fetchRecords(selectedWeapon, selectedChallenge, currentPage, pageSize)
     ]).finally(() => {
       setLoading(false);
     });
@@ -95,7 +100,22 @@ const AimTrainerStats: React.FC<AimTrainerStatsProps> = ({ refreshTrigger }) => 
   const handleFilterChange = (weapon: string, challenge: string) => {
     setSelectedWeapon(weapon);
     setSelectedChallenge(challenge);
-    fetchRecords(weapon, challenge);
+    setCurrentPage(1); // 重置到第一頁
+    fetchRecords(weapon, challenge, 1, pageSize);
+  };
+
+  // 分頁變更處理
+  const handlePageChange = (page: number, size: number) => {
+    setCurrentPage(page);
+    setPageSize(size);
+    fetchRecords(selectedWeapon, selectedChallenge, page, size);
+  };
+
+  // 每頁顯示數量變更處理
+  const handleShowSizeChange = (current: number, size: number) => {
+    setCurrentPage(1); // 重置到第一頁
+    setPageSize(size);
+    fetchRecords(selectedWeapon, selectedChallenge, 1, size);
   };
 
   // 表格欄位定義
@@ -177,7 +197,7 @@ const AimTrainerStats: React.FC<AimTrainerStatsProps> = ({ refreshTrigger }) => 
     setLoading(true);
     Promise.all([
       fetchStatistics(),
-      fetchRecords()
+      fetchRecords('', '', 1, 100) // 初始化時使用第1頁，每頁100筆
     ]).finally(() => {
       setLoading(false);
     });
@@ -301,11 +321,13 @@ const AimTrainerStats: React.FC<AimTrainerStatsProps> = ({ refreshTrigger }) => 
                 value={selectedWeapon}
                 onChange={(value) => handleFilterChange(value || '', selectedChallenge)}
               >
-                {statistics.weapons.map(weapon => (
-                  <Option key={weapon.weapon} value={weapon.weapon}>
-                    {weapon.weapon}
-                  </Option>
-                ))}
+                {statistics.weapons
+                  .filter(weapon => weapon.weapon && weapon.weapon.trim() !== '')
+                  .map(weapon => (
+                    <Option key={weapon.weapon} value={weapon.weapon}>
+                      {weapon.weapon}
+                    </Option>
+                  ))}
               </Select>
               <Select
                 placeholder="選擇挑戰"
@@ -314,11 +336,13 @@ const AimTrainerStats: React.FC<AimTrainerStatsProps> = ({ refreshTrigger }) => 
                 value={selectedChallenge}
                 onChange={(value) => handleFilterChange(selectedWeapon, value || '')}
               >
-                {statistics.challenges.map(challenge => (
-                  <Option key={challenge.challengeName} value={challenge.challengeName}>
-                    {challenge.challengeName}
-                  </Option>
-                ))}
+                {statistics.challenges
+                  .filter(challenge => challenge.challengeName && challenge.challengeName.trim() !== '')
+                  .map(challenge => (
+                    <Option key={challenge.challengeName} value={challenge.challengeName}>
+                      {challenge.challengeName}
+                    </Option>
+                  ))}
               </Select>
             </Space>
           </div>
@@ -329,9 +353,14 @@ const AimTrainerStats: React.FC<AimTrainerStatsProps> = ({ refreshTrigger }) => 
             loading={recordsLoading}
             rowKey="id"
             pagination={{
-              pageSize: 10,
+              current: currentPage,
+              pageSize: pageSize,
+              total: totalRecords,
               showSizeChanger: true,
+              pageSizeOptions: ['50', '100', '200', '500'],
               showTotal: (total, range) => `${range[0]}-${range[1]} 共 ${total} 筆`,
+              onChange: handlePageChange,
+              onShowSizeChange: handleShowSizeChange,
             }}
             scroll={{ x: 1000 }}
             size="small"

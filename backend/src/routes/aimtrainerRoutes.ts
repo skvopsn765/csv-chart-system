@@ -224,8 +224,9 @@ router.post('/upload', authenticateToken, upload.array('files'), async (req: Req
 router.get('/records', authenticateToken, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
+    const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 100;
-    const offset = parseInt(req.query.offset as string) || 0;
+    const offset = (page - 1) * limit;
     const weapon = req.query.weapon as string;
     const challengeName = req.query.challengeName as string;
     
@@ -245,7 +246,7 @@ router.get('/records', authenticateToken, async (req: Request, res: Response) =>
     const records = await AimTrainerRecord.findAll({
       where: whereConditions,
       order: [['uploadedAt', 'DESC'], ['id', 'DESC']],
-      limit: Math.min(limit, 1000),
+      limit: Math.min(limit, 500), // 限制最大每頁 500 筆
       offset: offset
     });
     
@@ -258,9 +259,12 @@ router.get('/records', authenticateToken, async (req: Request, res: Response) =>
       data: records,
       pagination: {
         total,
+        page,
         limit,
         offset,
-        hasNext: offset + limit < total
+        totalPages: Math.ceil(total / limit),
+        hasNext: offset + limit < total,
+        hasPrev: page > 1
       }
     });
     
